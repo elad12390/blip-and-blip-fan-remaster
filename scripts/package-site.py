@@ -24,7 +24,7 @@ subprocess.run(['npm', 'run', 'build'], cwd=root, check=True)
 archive = root / 'artifacts/site.tar.gz'
 with tarfile.open(archive, 'w:gz') as output:
     output.add(root / '.openai/hosting.json', arcname='.openai/hosting.json')
-    output.add(root / 'artifacts/site', arcname='web')
+    output.add(root / 'artifacts/site', arcname='dist')
 result = {
     'commit': commit,
     'archive': str(archive),
