@@ -55,7 +55,7 @@ void TexteCool::update()
 
 void TexteCool::affiche()
 {
-	fnt_cool.printC(backSurface, x, y, txt_data[ntxt].c_str());
+	fnt_cool.printC(backSurface, x-320+bb_view_width/2, y, txt_data[ntxt].c_str());
 }
 
 void clearTexteCool()

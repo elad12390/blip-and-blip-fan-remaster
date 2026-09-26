@@ -18,6 +18,7 @@
 #pragma once
 
 #include <list>
+#include "browser_bridge.h"
 
 //-----------------------------------------------------------------------------
 //		Headers
@@ -266,5 +267,5 @@ bool	checkRestore();
 inline void draw(int x, int y, const Picture * pic)
 {
 	if (pic != NULL)
-		pic->BlitTo(backSurface, x - offset, y);
+		pic->BlitTo(backSurface, x - bb_camera_x, y);
 }

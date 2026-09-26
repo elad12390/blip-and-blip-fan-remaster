@@ -34,8 +34,8 @@
 //		Constantes pour la gestion de l'affichage
 //-----------------------------------------------------------------------------
 
-#define	XPIC_MAX	640		// Représente la largeur de la Primary Surface
-#define YPIC_MAX	480		// Représente la hauteur de la Primary Surface
+// Pixel clipping is derived from each destination surface in Picture.cpp.
+// Authored world coordinates remain separate from framebuffer dimensions.
 
 //-----------------------------------------------------------------------------
 //		Définition de la classe Picture

@@ -52,7 +52,7 @@ class GoArrow {
     void Draw() {
         if (phase_ != Phase::No) {
             pbk_misc[81 + anim_step_ / kSpriteDuration]->BlitTo(
-                backSurface, x_, 150);
+                backSurface, x_-640+bb_view_width, 150);
         }
     }
 

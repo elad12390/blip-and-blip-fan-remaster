@@ -31,9 +31,32 @@ Screenshots and machine-readable observations are in `artifacts/qa/`, including 
 
 ## Automated checks
 
-`npm test` passes 35 tests covering mode isolation, save validation, exactly-once rewards, upgrade caps, separate high-score boards, keyboard and two-gamepad routing, focus loss, modal/pause behavior, runtime failure/retry, stale asynchronous initialization, gzip decoding, SHA verification, cache corruption and raw-resource fallback.
+`npm test` passes 62 tests covering mode isolation, save validation, exactly-once rewards, upgrade caps, separate high-score boards, keyboard and two-gamepad routing, focus loss, modal/pause behavior, runtime failure/retry, stale asynchronous initialization, gzip decoding, SHA verification, cache corruption, raw-resource fallback, touch ownership and cancellation, simultaneous controls, preferences, secondary-finger HUD actions, viewport measurements, retained-frame recovery and release cache versioning.
 
 Extraction additionally validates original byte lengths/hashes, all atlas crops, all level grids and all deterministic gzip companions. Native production and diagnostic builds compile successfully. Production has no diagnostic exports, and packaging excludes `core-qa`.
+
+## Responsive controls and camera revision
+
+- The actual native gameplay frame was exercised at 240, 320, 390, 640, 853, 1280, 1720 and 2560 pixels wide with a 480-unit vertical world scale. Native pitch matched width × 4. Paused resizing preserved player world position, health, lives and authored encounter offset.
+- All 12 playable campaign parts were opened with the new render camera at narrow and wide sizes. Boss arena framing and a left-facing laser were additionally inspected. These are stage-entry and rendering checks, not completed combat playthroughs.
+- CSS layout bounds were measured at 320×568, 360×640, 390×844, 430×932, 568×320, 667×375, 844×390, 932×430, 768×1024, 1024×768, 1440×900 and 2560×1080. HUD and visible controls stayed inside the viewport. Uniform frame-fit rounding left at most approximately one physical pixel of unused space in this matrix.
+- Real Chromium touch dispatch exercised moving and firing together, adding Jump, and cancellation. A second finger toggled Auto fire while the first continued holding movement; position continued advancing and native firing became active. This specifically checks the browser behavior that does not synthesize a normal click for secondary contacts.
+- Extra-large, left-handed controls were inspected at 320×568. Co-op HUD inventory and controls were checked at 320×568, 390×844, 568×320 and 844×390.
+- Fullscreen entry, pause, opening and closing Controls & display, resume, and exiting fullscreen worked in the 844×390 layout. The settings dialog stayed inside the visible screen and remained reachable in fullscreen.
+
+Evidence: `artifacts/responsive/layout-matrix.json`, its layout screenshots, and `artifacts/qa/responsive-native-stages.json` / `responsive-native-resize.json`.
+
+## Water corruption and graphics recovery
+
+The water pass previously used overlapping RGBA self-blits, allowing modified pixels to feed back into the same operation. It now copies color and depth from one immutable snapshot each per frame, applies the original two-row sine shifts with independent row pitches, and fills newly exposed edges. The old depth implementation also allocated a full-frame snapshot for every strip; that repeated work is removed from the water path.
+
+- The native diagnostic regression checks every color and depth pixel against a coordinate-pattern source at eight widths, repeated resize sequences and four wave phases: 56 frames, zero color/depth/padding failures. Color alpha varies among 0, 127 and 255 to verify raw translation rather than blending.
+- Snorks I ran for 737 frames and Snorks II for 841 frames with movement, shooting, jumping and live width changes `640 → 390 → 1280 → 240 → 2560 → 640`. The original weather triggers confirmed that water distortion was active. Narrow and wide screenshots from both stages showed intact scenery, sprites, bubbles and projectiles. These short stress runs are not complete stage playthroughs.
+- A separate production-engine Snorks I smoke test ran 182 frames at 390×480 and verified diagnostic exports were absent.
+- The paused phone-size matrix was repeated after fixing a blank frame caused by canvas backing-size changes. The renderer now re-presents retained GPU textures and owns a color/depth copy for context restoration, without dereferencing an old native pointer.
+- A standalone real-browser probe supplied one native frame, zeroed its original memory, changed DPR to two, explicitly invoked the resize path and forced WebGL context loss/restoration. Exact center pixels survived every step with zero WebGL errors and no second native frame. Canvas 2D fallback passed the same retained-frame resize check. CDP's DPR-only override did not deliver a media-query change event in this headless run, so this probe validates redraw/recovery rather than operating-system DPR event delivery.
+
+Evidence: `artifacts/qa/water-coordinate-regression.json`, `water-browser-stress.json`, `water-production-smoke.json`, water-stage screenshots, and `artifacts/responsive/renderer-recovery.json`.
 
 ## Remaining validation limits
 

@@ -1,4 +1,8 @@
 // The adapter owns the browser lifecycle; the native engine owns game simulation.
+// Packaged module imports carry one content-derived release revision. The native
+// loader and WASM must use it too, so a refresh cannot mix engine generations.
+const releaseVersion=new URL(import.meta.url).searchParams.get('v');
+const resourceURL=path=>releaseVersion?`${path}?v=${encodeURIComponent(releaseVersion)}`:path;
 export class Engine {
   constructor({ onFrame, onState, onCheckpoint, onDeath, onComplete, onProgress, onError }) {
     Object.assign(this,{onFrame,onState,onCheckpoint,onDeath,onComplete,onProgress,onError});
@@ -11,7 +15,7 @@ export class Engine {
       const module=window.Module={
         canvas:document.querySelector('#native-screen'),
         noInitialRun:true,
-        locateFile:path=>`core/${path}`,
+        locateFile:path=>resourceURL(`core/${path}`),
         print:message=>console.debug('[game]',message),
         printErr:message=>console.warn('[game]',message),
         setStatus:message=>this.onProgress?.(message),
@@ -21,15 +25,15 @@ export class Engine {
         onDeath:state=>this.onDeath?.(this.parse(state)),
         onComplete:state=>this.onComplete?.(this.parse(state)),
         onState:state=>{this.state=this.parse(state);this.onState?.(this.state);},
-        onRuntimeInitialized:async()=>{try{if(failed)return;this.module=module;await this.loadResources(module);if(failed||this.module!==module)return;this.ready=true;resolve(this);}catch(error){fail(error);}},
+        onRuntimeInitialized:async()=>{try{if(failed)return;this.module=module;await this.loadResources(module);if(failed||this.module!==module)return;this.applyViewport();this.ready=true;resolve(this);}catch(error){fail(error);}},
         onAbort:reason=>{const error=Error(`Game engine stopped: ${reason}`);if(this.running)this.onError?.(error);fail(error);},
       };
-      const script=document.createElement('script');script.src='core/blipblop.js';script.onerror=()=>fail(Error('The game engine could not be downloaded. Check your connection and retry.'));document.head.append(script);
+      const script=document.createElement('script');script.src=resourceURL('core/blipblop.js');script.onerror=()=>fail(Error('The game engine could not be downloaded. Check your connection and retry.'));document.head.append(script);
     }).catch(error=>{this.promise=null;throw error;});
     return this.promise;
   }
   async loadResources(module) {
-    const response=await fetch('data-manifest.json');
+    const response=await fetch(resourceURL('data-manifest.json'));
     if(!response.ok)throw Error('The game data manifest could not be downloaded.');
     const manifest=await response.json();
     module.FS.mkdirTree('/data');
@@ -90,6 +94,7 @@ export class Engine {
   parse(value){if(typeof value==='number')value=this.module?.UTF8ToString(value);if(typeof value==='string'){try{return JSON.parse(value);}catch{return {};}}return value??{};}
   start({mode,player,part,upgrades,players=1}){
     const m=this.module;if(!m)throw Error('Engine is not loaded.');
+    this.applyViewport();
     m._bb_set_upgrades?.(mode==='roguelite'?upgrades.armor:0,mode==='roguelite'?upgrades.firepower:0,mode==='roguelite'?upgrades.supply:0);
     m._bb_set_players?.(players);
     m._bb_start?.(mode==='roguelite'?1:0,player,part??0);
@@ -98,6 +103,12 @@ export class Engine {
     },200);}
   }
   input(mask){this.module?._bb_set_input?.(mask);}
+  setViewport(width,height=480){
+    if(!Number.isFinite(width)||!Number.isFinite(height)||width<=0||height<=0)return;
+    this.viewport={width:Math.max(240,Math.min(2560,Math.round(width/height*480))),height:480};
+    this.applyViewport();
+  }
+  applyViewport(){if(this.viewport)this.module?._bb_set_viewport?.(this.viewport.width,this.viewport.height);}
   input2(mask){this.module?._bb_set_input2?.(mask);}
   pause(value){this.module?._bb_pause?.(value?1:0);}
   volume(value){this.module?._bb_volume?.(Math.round(value*128));}

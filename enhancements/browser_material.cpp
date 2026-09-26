@@ -3,6 +3,7 @@
 #include <vector>
 #include <unordered_map>
 #include <cstring>
+#include <cstdlib>
 
 namespace {
 std::unordered_map<SDL_Surface*, SDL_Surface*> maps;
@@ -78,4 +79,45 @@ void bb_material_forget(SDL_Surface* surface){
 }
 unsigned char* bb_material_pixels(SDL_Surface* surface){
   SDL_Surface* depth=material(surface);return depth?static_cast<unsigned char*>(depth->pixels):nullptr;
+}
+
+bool bb_material_warp_rows(SDL_Surface* surface,const int* offsets,int rows){
+  if(!surface || !offsets || rows!=surface->h)return false;
+  SDL_Surface* depth=material(surface);
+  if(!depth)return false;
+  // Reuse allocations, but always snapshot this frame before writing any row.
+  // SDL's alpha self-blitter is not a raw overlapping copy and can feed newly
+  // written pixels back into later reads. Color and depth must move identically.
+  static std::vector<unsigned char> colorBefore,depthBefore;
+  const int bytes=surface->format->BytesPerPixel;
+  const int depthBytes=depth->format->BytesPerPixel;
+  colorBefore.resize(static_cast<size_t>(surface->pitch)*surface->h);
+  depthBefore.resize(static_cast<size_t>(depth->pitch)*depth->h);
+  const bool lockColor=SDL_MUSTLOCK(surface),lockDepth=SDL_MUSTLOCK(depth);
+  if(lockColor && SDL_LockSurface(surface)!=0)return false;
+  if(lockDepth && SDL_LockSurface(depth)!=0){if(lockColor)SDL_UnlockSurface(surface);return false;}
+  std::memcpy(colorBefore.data(),surface->pixels,colorBefore.size());
+  std::memcpy(depthBefore.data(),depth->pixels,depthBefore.size());
+  const Uint32 black=SDL_MapRGBA(surface->format,0,0,0,255);
+  const Uint32 flat=SDL_MapRGBA(depth->format,80,80,80,255);
+  for(int y=0;y<rows;y++){
+    const int shift=std::clamp(offsets[y],-surface->w,surface->w);
+    const int sourceX=std::max(0,-shift),destinationX=std::max(0,shift);
+    const int count=surface->w-std::abs(shift);
+    auto* colorRow=static_cast<unsigned char*>(surface->pixels)+static_cast<size_t>(y)*surface->pitch;
+    auto* depthRow=static_cast<unsigned char*>(depth->pixels)+static_cast<size_t>(y)*depth->pitch;
+    if(count>0){
+      std::memcpy(colorRow+destinationX*bytes,colorBefore.data()+static_cast<size_t>(y)*surface->pitch+sourceX*bytes,count*bytes);
+      std::memcpy(depthRow+destinationX*depthBytes,depthBefore.data()+static_cast<size_t>(y)*depth->pitch+sourceX*depthBytes,count*depthBytes);
+    }
+    const int edgeStart=shift>0?0:surface->w+shift;
+    const int edgeEnd=shift>0?shift:surface->w;
+    for(int x=edgeStart;x<edgeEnd;x++){
+      std::memcpy(colorRow+x*bytes,&black,bytes);
+      std::memcpy(depthRow+x*depthBytes,&flat,depthBytes);
+    }
+  }
+  if(lockDepth)SDL_UnlockSurface(depth);
+  if(lockColor)SDL_UnlockSurface(surface);
+  return true;
 }

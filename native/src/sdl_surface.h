@@ -45,6 +45,20 @@ namespace SDL
 		}
 
 		inline SDL_Surface *Get(){ return surface; };
+        // Keep the wrapper address stable: cinematic/RPG loops retain it while
+        // Asyncify yields. Only replace the owned pixel buffer at a frame edge.
+        bool Resize(int width, int height) {
+            if (surface->w == width && surface->h == height) return true;
+            SDL_Surface* replacement = SDL_CreateRGBSurfaceWithFormat(
+                0, width, height, 32, surface->format->format);
+            if (!replacement) return false;
+            SDL_FillRect(replacement, nullptr, SDL_MapRGBA(replacement->format,0,0,0,255));
+            SDL_BlitSurface(surface, nullptr, replacement, nullptr);
+            bb_material_forget(surface);
+            SDL_FreeSurface(surface);
+            surface = replacement;
+            return true;
+        }
 		inline void BltFast(int x, int y, SDL::Surface *surf /*This is the Source Surface! Damn, DD!*/, Rect *r, int flags=0)
 		{
                         (void)flags;

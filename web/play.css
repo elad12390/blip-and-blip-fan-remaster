@@ -1,0 +1,227 @@
+/* The play surface follows the viewport. Authored world coordinates never
+   dictate the size or aspect ratio of the browser interface. */
+:root { --app-height: 100dvh; --app-width: 100%; --safe-top: env(safe-area-inset-top, 0px); --safe-bottom: env(safe-area-inset-bottom, 0px); --safe-left: env(safe-area-inset-left, 0px); --safe-right: env(safe-area-inset-right, 0px); }
+body.playing { position: fixed; inset: 0; width: 100%; height: var(--app-height); overflow: hidden; overscroll-behavior: none; background: #0b1414; }
+body.playing .topbar { display: none; }
+body.playing main { height: 100%; }
+body.playing #play { width: 100%; height: 100%; min-height: 0; padding: 0; overflow: hidden; color: #f0f2df; background: #0b1414; }
+#game-stage { --dock-height: 0px; --fire-size: 94px; --jump-size: 80px; --cow-size: 58px; position: relative; display: grid; grid-template-rows: auto minmax(0, 1fr) var(--dock-height); width: 100%; height: 100%; max-width: none; margin: 0; aspect-ratio: auto; overflow: hidden; box-shadow: none; background: #071014; padding: var(--safe-top) var(--safe-right) var(--safe-bottom) var(--safe-left); }
+.game-chrome { position: relative; z-index: 4; min-width: 0; display: flex; align-items: center; gap: clamp(16px, 3vw, 48px); min-height: 72px; padding: 10px 20px; background: linear-gradient(130deg, #1a2927, #111c1e); border-bottom: 1px solid #d7e6bf1c; box-shadow: 0 3px 20px #0003; }
+.mission { min-width: 100px; display: grid; gap: 4px; }
+.mission > span:first-child { color: #c8c388; font-size: 9px; letter-spacing: 1.7px; font-weight: 700; }
+.mission > strong { color: #e9eedf; font-size: 12px; white-space: nowrap; }
+#save-status { font-size: 8px; color: #97b98d; letter-spacing: .5px; }
+.game-hud { display: flex; align-items: center; gap: clamp(14px, 2.8vw, 38px); min-width: 0; flex: 1; font-variant-numeric: tabular-nums; }
+.hud-vitals { display: flex; align-items: center; gap: 10px; min-width: 125px; }
+.hud-vitals img { width: 38px; height: 38px; border: 1px solid #8fbbac60; border-radius: 12px; image-rendering: pixelated; box-shadow: 0 2px 8px #0005; }
+.vitals-info { width: 98px; }
+.vitals-numbers { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin-bottom: 7px; white-space: nowrap; }
+#health-status { font-size: 16px; letter-spacing: -.4px; }
+#hud-lives { color: #bdcab8; font-size: 10px; }
+.health-track { height: 5px; border-radius: 8px; background: #ffffff18; overflow: hidden; }
+#health-fill { display: block; width: 100%; height: 100%; background: linear-gradient(90deg, #70b899, #d5e89c); border-radius: inherit; transition: width .2s ease, background .2s; }
+.hud-vitals.low-health #health-fill { background: #ee9a76; }
+.hud-stat { display: grid; gap: 4px; min-width: 42px; }
+.hud-stat > span { font-size: 8px; font-weight: 700; letter-spacing: 1.2px; color: #a0b3a5; white-space: nowrap; }
+.hud-stat > strong { color: #f6e8b3; font-size: 18px; line-height: 1; letter-spacing: .2px; }
+.hud-score > strong { color: #e6eddb; min-width: 68px; }
+.hud-partner { display: grid; gap: 3px; border-left: 1px solid #ffffff26; padding-left: 14px; }
+.hud-partner span, .hud-partner small { color: #a3c9da; font-size: 9px; }
+.hud-partner strong { font-size: 12px; }
+#game-stage .game-toolbar { display: flex; position: static; align-items: center; gap: 8px; padding: 0; margin: 0 0 0 auto; opacity: 1; flex: 0 0 auto; }
+#game-stage .icon-button { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 12px; background: #ffffff08; border: 1px solid #e6f1d92b; color: #eaf0dc; padding: 10px; }
+#game-stage .icon-button:hover { background: #ffffff18; }
+#game-stage .pause-button { color: #f4db81; border-color: #dbc26755; background: #cfb45c13; }
+.icon-button svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.chrome-button { min-height: 44px; border: 0; background: none; color: #aebfa5; padding: 0 12px; font-size: 10px; }
+.game-view { position: relative; min-width: 0; min-height: 0; overflow: hidden; background: radial-gradient(ellipse at 45% 55%, #243b35, #091416); isolation: isolate; }
+#game-stage #screen { position: absolute; inset: 0; width: 100%; height: 100%; max-width: none; max-height: none; aspect-ratio: auto; display: block; image-rendering: auto; object-fit: fill; outline: none; touch-action: none; }
+#game-stage[data-graphics="original"] #screen { image-rendering: pixelated; }
+#native-screen { position: absolute; width: 1px; height: 1px; left: -2px; opacity: 0; pointer-events: none; }
+.view-caption { position: absolute; bottom: 16px; left: 20px; display: flex; align-items: center; gap: 8px; font-size: 8px; letter-spacing: 1.2px; color: #c9d9b9; pointer-events: none; opacity: .8; }
+#game-stage.is-gameplay .view-caption { display: none; }
+
+/* Comfortable touch targets, independent pointer capture and a floating thumb
+   origin keep simultaneous movement, firing and jumping reliable. */
+#game-stage #touch-controls { position: absolute; inset: auto var(--safe-right) var(--safe-bottom) var(--safe-left); height: 202px; pointer-events: none; touch-action: none; z-index: 3; display: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+#game-stage #touch-controls.show { display: block; }
+.touch-topline { display: flex; justify-content: space-between; align-items: center; position: absolute; left: 28px; right: 28px; top: 0; pointer-events: none; }
+.touch-hint { font-size: 8px; font-weight: 700; letter-spacing: 1.8px; color: #acbeae; }
+.auto-fire-button { pointer-events: auto; border: 1px solid #d0e3ca26; color: #c4d4c0; background: #152423de; backdrop-filter: blur(12px); font-size: 10px; padding: 9px 12px; min-height: 44px; border-radius: 24px; display: flex; align-items: center; gap: 10px; touch-action: manipulation; }
+.auto-fire-button span { font-size: 8px; letter-spacing: 1px; color: #e7d385; font-weight: 700; }
+.auto-fire-button[aria-pressed="true"] { border-color: #ead07088; color: #f9e7b1; background: #655523c9; }
+#game-stage .direction-pad { position: absolute; left: 8px; bottom: 4px; width: clamp(150px, 24vw, 244px); height: 156px; border: 0; border-radius: 28px; background: none; pointer-events: auto; touch-action: none; --stick-x: 50%; --stick-y: 50%; }
+.pad-base { position: absolute; left: var(--stick-x, 50%); top: var(--stick-y, 50%); transform: translate(-50%, -50%); width: 116px; height: 116px; border-radius: 50%; background: radial-gradient(circle, #e7eedc0c 28%, #b7d3c211 29%, #223a34bb 69%, #b4d9b52b 70%, #18362e99 74%); border: 1px solid #d6efcd47; box-shadow: 0 6px 22px #0003, inset 0 0 24px #13241d40; backdrop-filter: blur(8px); pointer-events: none; transition: border-color .15s; }
+#game-stage .pad-arrows { position: absolute; inset: 0; width: 100%; height: 100%; color: #dce7cb91; fill: none; stroke: currentColor; stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+#game-stage .pad-stick { position: absolute; left: calc(50% - 24px); top: calc(50% - 24px); width: 48px; height: 48px; border-radius: 50%; background: radial-gradient(circle at 35% 28%, #c5ddaa, #7f9e83 70%); border: 1px solid #e4f5cd7d; box-shadow: 0 4px 10px #001e1580, inset 0 1px 0 #ffffff60; transform: translate(var(--dx, 0px), var(--dy, 0px)); pointer-events: none; }
+.direction-pad.engaged .pad-base { border-color: #d5e9a9bd; }
+.direction-pad.engaged .pad-stick { background: linear-gradient(145deg, #e2eac0, #a6c190); }
+#game-stage .touch-actions { position: absolute; right: 20px; bottom: 16px; width: 208px; height: 138px; transform: none; transform-origin: center; pointer-events: none; }
+#game-stage .touch-actions button { pointer-events: auto; touch-action: none; position: absolute; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 4px; padding: 0; border-radius: 50%; color: #e8f1db; border: 1px solid #e2efd65c; box-shadow: 0 5px 0 #071b18a6, 0 8px 18px #0004, inset 0 1px 1px #ffffff30; background: linear-gradient(140deg, #527167e6, #273e39ed); backdrop-filter: blur(8px); transition: transform .09s, filter .09s; }
+#game-stage .touch-actions button.pressed { transform: translateY(3px) scale(.96); filter: brightness(1.25); box-shadow: 0 1px 0 #081b18b3, inset 0 2px 10px #0004; }
+#game-stage .touch-actions svg { width: 27px; height: 27px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; pointer-events: none; }
+#game-stage .touch-actions small { font-size: 9px; font-weight: 800; letter-spacing: .8px; line-height: 1; pointer-events: none; }
+#game-stage .touch-fire { width: var(--fire-size); height: var(--fire-size); right: 0; bottom: 8px; background: linear-gradient(145deg, #f5dc87f5, #ba9041ef)!important; border-color: #ffebadba!important; color: #30291b!important; }
+#game-stage .touch-fire svg { width: 34px; height: 34px; stroke-width: 1.8; }
+#game-stage .touch-jump { width: var(--jump-size); height: var(--jump-size); right: calc(var(--fire-size) + 14px); bottom: 0; }
+#game-stage .touch-cow { width: var(--cow-size); height: var(--cow-size); right: calc(var(--fire-size) + 12px); top: -6px; gap: 3px; }
+#game-stage .touch-cow svg { width: 23px; height: 23px; }
+#game-stage .touch-cow small { font-size: 8px; }
+#game-stage .touch-confirm { position: absolute; bottom: 170px; left: 50%; transform: translateX(-50%); pointer-events: auto; width: max-content; min-width: 158px; min-height: 48px; padding: 12px 22px; display: flex; justify-content: space-between; align-items: center; gap: 24px; border-radius: 28px; border: 1px solid #eddd9dbf; color: #f1e6b5; background: #152820ed; box-shadow: 0 5px 20px #0004; font-size: 12px; font-weight: 700; touch-action: none; }
+#game-stage.is-gameplay .touch-confirm { display: none; }
+#game-stage:not(.is-gameplay) .touch-actions, #game-stage:not(.is-gameplay) .direction-pad, #game-stage:not(.is-gameplay) .touch-topline { opacity: .28; }
+#game-stage.controls-left .direction-pad { left: auto; right: 8px; }
+#game-stage.controls-left .touch-actions { right: auto; left: 20px; transform: scaleX(-1); }
+#game-stage.controls-left .touch-actions button > * { transform: scaleX(-1); }
+#game-stage.controls-left .touch-topline { flex-direction: row-reverse; }
+#game-stage.controls-large { --fire-size: 104px; --jump-size: 88px; --cow-size: 62px; }
+#game-stage.controls-large .touch-actions { width: 224px; height: 150px; }
+#game-stage.controls-large .pad-base { width: 128px; height: 128px; }
+#game-stage.controls-large .direction-pad { height: 172px; }
+
+/* Menus cover the controller too, so a thumb can never activate the game
+   underneath them. They remain scrollable on very short landscape screens. */
+#game-stage .loading, #game-stage .game-overlay { position: absolute; inset: 0; z-index: 10; min-height: 0; overflow: auto; padding: max(24px, var(--safe-top)) 24px max(24px, var(--safe-bottom)); background: #0c1b1be8; backdrop-filter: blur(18px); color: #edf0da; overscroll-behavior: contain; }
+#game-stage .loading { background: radial-gradient(ellipse at 50% 30%, #2c4940, #0a191cf7 70%); }
+.overlay-card { display: flex; flex-direction: column; align-items: center; width: min(100%, 400px); margin: auto; }
+#game-stage .game-overlay .eyebrow, #game-stage .loading .eyebrow { font-size: 10px; color: #d8c88b; letter-spacing: 2.5px; }
+#game-stage .game-overlay h2, #game-stage .loading h2 { font-size: clamp(40px, 8vw, 76px); margin: 12px 0 26px; }
+#game-stage .game-overlay .primary-button, #game-stage .game-overlay .secondary-button { max-width: 320px; min-height: 52px; border-radius: 12px; font-size: 14px; }
+#game-stage .game-overlay .primary-button { border-color: #f0d782; color: #29352b; background: #ead07f; }
+#game-stage .game-overlay .secondary-button { border-color: #c4d6b638; color: #dbe7ce; }
+#game-stage .game-overlay .text-button { min-height: 44px; font-size: 13px; }
+#game-stage .game-overlay p { font-size: 12px; color: #9fb8a6; max-width: 320px; }
+#game-stage .volume-label { margin-top: 22px; font-size: 10px; }
+#game-stage input[type="range"] { min-height: 32px; }
+body.playing .toast { bottom: calc(var(--safe-bottom) + 20px); z-index: 40; border: 1px solid #e7d58944; border-radius: 12px; background: #152c25f5; pointer-events: none; }
+dialog { border-radius: 22px; padding: 36px; }
+dialog .dialog-close { width: 44px; height: 44px; right: 10px; top: 8px; }
+.settings-grid { display: grid; gap: 0; margin: 22px 0; border-top: 1px solid #bfc7b5; }
+.setting-row { display: flex; justify-content: space-between; align-items: center; gap: 20px; padding: 15px 0; border-bottom: 1px solid #c7cdbd; font-size: 12px; }
+.setting-row > span { font-weight: 700; }
+.setting-row small { display: block; margin-top: 4px; font-size: 10px; line-height: 1.5; font-weight: 400; color: #6a7764; }
+.setting-row select { min-height: 44px; min-width: 130px; max-width: 50%; border: 1px solid #b8c4ad; background: #f6f5eb; color: #2b402f; border-radius: 8px; padding: 8px 10px; font-size: 12px; }
+.setting-row input[type="checkbox"] { width: 24px; height: 24px; accent-color: #55765d; }
+.settings-note { background: #dce4d0; border-radius: 10px; padding: 12px 15px; }
+.settings-done { margin-top: 20px; border-radius: 10px; }
+
+@media (max-width: 1100px) {
+  .game-chrome { gap: 20px; padding: 8px 12px; min-height: 60px; }
+  .mission { display: none; }
+  .game-hud { gap: clamp(16px, 4vw, 38px); }
+  #game-stage .game-toolbar { gap: 6px; }
+  .chrome-button { display: none; }
+}
+@media (orientation: portrait) and (max-width: 1000px) {
+  #game-stage.touch-active { --dock-height: 214px; }
+  #game-stage.touch-active.controls-large { --dock-height: 230px; }
+  #game-stage .game-chrome { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px 12px; padding: 8px 14px 12px; }
+  #game-stage .mission { display: flex; align-items: center; min-width: 0; gap: 8px; }
+  #game-stage .mission > strong { font-size: 10px; overflow: hidden; text-overflow: ellipsis; }
+  #game-stage .mission > span:first-child { font-size: 7px; letter-spacing: 1px; }
+  #game-stage #save-status { display: none; }
+  #game-stage .game-toolbar { grid-column: 2; grid-row: 1; }
+  #game-stage .game-toolbar .icon-button { width: 44px; height: 44px; border-radius: 10px; }
+  #game-stage .game-hud { grid-column: 1 / -1; grid-row: 2; gap: 18px; justify-content: space-between; }
+  .hud-vitals { min-width: 0; gap: 8px; }
+  .hud-vitals img { width: 32px; height: 32px; border-radius: 9px; }
+  .vitals-info { width: 80px; }
+  #health-status { font-size: 14px; }
+  #hud-lives { font-size: 8px; }
+  .hud-stat { min-width: 30px; }
+  .hud-stat > span { font-size: 7px; letter-spacing: .6px; }
+  .hud-stat > strong { font-size: 16px; }
+  .hud-score > strong { min-width: 56px; }
+  #game-stage #touch-controls { position: relative; grid-row: 3; inset: auto; width: 100%; height: 100%; border-top: 1px solid #bddec225; background: radial-gradient(ellipse at 50% 100%, #2e4135, #152727 80%); }
+  #game-stage .touch-topline { top: 8px; left: 22px; right: 20px; }
+  #game-stage .direction-pad { width: 42%; height: calc(100% - 40px); left: 0; bottom: 0; }
+  #game-stage .touch-actions { width: 53%; max-width: 242px; right: 18px; bottom: 18px; }
+  #game-stage .touch-confirm { bottom: calc(100% + 20px); }
+  #game-stage.controls-left .direction-pad { right: 0; left: auto; }
+  #game-stage.controls-left .touch-actions { left: 18px; right: auto; }
+  .view-caption { bottom: 12px; left: 14px; font-size: 7px; }
+  .hud-partner { padding-left: 8px; }
+  #game-stage.coop .hud-score, #game-stage.coop .hud-cows { display: none; }
+}
+@media (max-width: 370px) and (orientation: portrait) {
+  #game-stage { --fire-size: 82px; --jump-size: 70px; --cow-size: 54px; }
+  #game-stage.controls-large { --fire-size: 90px; --jump-size: 76px; --cow-size: 58px; }
+  #game-stage .game-chrome { padding-inline: 10px; }
+  #game-stage .game-hud { gap: 10px; }
+  #game-stage .mission > span:first-child { display: none; }
+  .vitals-info { width: 70px; }
+  .hud-vitals img { width: 28px; height: 28px; }
+  #game-stage .touch-actions { right: 12px; }
+  #game-stage.controls-left .touch-actions { left: 12px; }
+  .setting-row { gap: 10px; }
+  dialog { padding: 32px 20px 24px; }
+}
+@media (max-height: 500px) and (orientation: landscape) {
+  #game-stage .game-chrome { min-height: 52px; padding: 4px max(10px, 2vw); gap: 14px; }
+  #game-stage .game-hud { gap: clamp(14px, 3vw, 40px); }
+  #game-stage .game-toolbar .icon-button { width: 44px; height: 44px; padding: 10px; }
+  .hud-vitals img { width: 32px; height: 32px; }
+  .hud-stat > strong { font-size: 16px; }
+  #game-stage #touch-controls { height: 176px; }
+  #game-stage .touch-topline { left: 50%; right: auto; top: auto; bottom: 14px; transform: translateX(-50%); }
+  .touch-hint { display: none; }
+  .touch-topline { justify-content: flex-end; }
+  #game-stage .direction-pad { height: 142px; left: 6px; bottom: 0; width: 178px; }
+  #game-stage .touch-actions { bottom: 12px; right: 16px; }
+  #game-stage .touch-confirm { bottom: 18px; }
+  #game-stage .game-overlay { justify-content: flex-start; padding: 18px; }
+  .overlay-card { padding: 2px 0; }
+  #game-stage .game-overlay h2 { font-size: 38px; margin: 6px 0 14px; }
+  #game-stage .game-overlay .primary-button, #game-stage .game-overlay .secondary-button { min-height: 46px; padding: 12px 18px; }
+  #game-stage .game-overlay .volume-label { margin-top: 12px; }
+  #game-stage .game-overlay .text-button { margin-top: 3px; }
+  #game-stage .game-overlay p { margin: 4px 0; }
+}
+@media (max-height: 360px) and (orientation: landscape) {
+  #game-stage { --fire-size: 82px; --jump-size: 70px; --cow-size: 52px; }
+  #game-stage #touch-controls { height: 148px; }
+  #game-stage .touch-actions { height: 115px; }
+  #game-stage .direction-pad { height: 126px; }
+  #game-stage .auto-fire-button { min-height: 44px; padding: 9px 12px; }
+}
+@media (max-height: 650px) and (orientation: portrait) {
+  #game-stage.touch-active { --dock-height: 188px; }
+  #game-stage.touch-active.controls-large { --dock-height: 204px; }
+  #game-stage .touch-topline { top: 3px; }
+  #game-stage .touch-actions { bottom: 12px; }
+}
+
+/* The launch screen also keeps its primary action close on phones. */
+@media (max-width: 700px) {
+  .home { padding: 18px 5% 0; gap: 22px; }
+  .hero { min-height: 310px; padding: 28px; border-radius: 18px; }
+  h1 { font-size: clamp(78px, 22vw, 114px); }
+  .hero .eyebrow { margin-bottom: 22px; font-size: 8px; }
+  .hero-description { font-size: 14px; margin: 22px 0 0; }
+  .hero-footnote { display: none; }
+  .hero-stamp { right: 18px; top: 22px; }
+  .hero-portraits { right: 20px; bottom: 22px; }
+  .hero-art .hero-portraits img { width: 50px; height: 50px; }
+  .title-rule { margin-top: 17px; font-size: 8px; max-width: 230px; gap: 22px; }
+  .mode-card { min-height: 170px; padding: 16px; border-radius: 12px; }
+  .mode-top { margin-bottom: 14px; }
+  .launch-options { gap: 16px; margin: 22px 0; }
+  .launch-options select, .party-label select { min-height: 44px; font-size: 13px; }
+  .launch-panel .primary-button, .launch-panel .secondary-button { min-height: 54px; border-radius: 12px; }
+  .launch-note { font-size: 11px; margin: 12px 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  #game-stage *, #game-stage *::before { transition: none!important; }
+}
+
+/* A full second-player readout remains available without squeezing the main
+   row off a narrow screen. The original pixel HUD is no longer present. */
+#game-stage.coop .game-hud { display: grid; grid-template-columns: minmax(110px, 1fr) repeat(3, auto); gap: 8px 16px; }
+#game-stage.coop .hud-partner { grid-column: 1 / -1; display: flex; align-items: center; justify-content: space-between; gap: 10px; border-left: 0; border-top: 1px solid #a3c9da25; padding: 7px 0 0; }
+#game-stage.coop .hud-partner > span:first-child { font-weight: 800; letter-spacing: 1px; }
+#game-stage.coop .hud-score, #game-stage.coop .hud-cows { display: grid; }
+@media (max-width: 700px) {
+  #game-stage.has-timer .hud-score { display: none; }
+  #game-stage.coop .game-hud { column-gap: 10px; }
+  #game-stage.coop .hud-vitals { min-width: 0; }
+}

@@ -15,9 +15,59 @@
 #include <cstdio>
 #include <memory>
 #include <algorithm>
+#include <vector>
+#include <cstring>
+#include "browser_material.h"
+#include "ben_maths.h"
 extern Game game;
 static Couille* playerAt(int n){return game.browserPlayer(n==1?1:0);}
 extern "C" {
+EMSCRIPTEN_KEEPALIVE const char* bb_qa_water_regression(){
+    static char result[512];
+    unsigned colorFailures=0,depthFailures=0,guardFailures=0,frames=0;
+    const int widths[]={240,241,390,640,641,1168,1464,2560,640,241,1464,390,2560,640};
+    const int height=480;
+    for(int width:widths)for(int phase:{0,90,180,270}){
+        const int pitch=width*4+32;
+        std::vector<unsigned char> pixels(64+pitch*height+64,0xA5);
+        SDL_Surface* surface=SDL_CreateRGBSurfaceWithFormatFrom(pixels.data()+64,width,height,32,pitch,SDL_PIXELFORMAT_ABGR8888);
+        if(!surface){colorFailures++;continue;}
+        for(int y=0;y<height;y++)for(int x=0;x<width;x++){
+            // Vary alpha as well: the defective SDL alpha-blit path may pass an
+            // all-opaque-only test even though the real RGBA framebuffer fails.
+            const Uint32 alpha=((x+y)%3==0?0:((x+y)%3==1?127:255));
+            const Uint32 value=(alpha<<24)|((y&511)<<12)|(x&4095);
+            std::memcpy(pixels.data()+64+y*pitch+x*4,&value,4);
+        }
+        unsigned char* depth=bb_material_pixels(surface);
+        for(int y=0;y<height;y++)for(int x=0;x<width;x++){
+            const Uint32 value=(37*x+17*y)%256;
+            const Uint32 pixel=0xFF000000|value|(value<<8)|(value<<16);
+            std::memcpy(depth+(y*width+x)*4,&pixel,4);
+        }
+        const auto before=pixels;
+        const std::vector<unsigned char> depthBefore(depth,depth+width*height*4);
+        std::vector<int> offsets(height);
+        for(int y=0;y<height;y++)offsets[y]=sini(5,(phase+y/2+1)%360);
+        if(!bb_material_warp_rows(surface,offsets.data(),height)){colorFailures++;}
+        for(int y=0;y<height;y++)for(int x=0;x<width;x++){
+            const int sourceX=x-offsets[y];Uint32 actual,expected=0xFF000000,actualDepth,expectedDepth=0xFF505050;
+            if(sourceX>=0 && sourceX<width){
+                std::memcpy(&expected,before.data()+64+y*pitch+sourceX*4,4);
+                std::memcpy(&expectedDepth,depthBefore.data()+(y*width+sourceX)*4,4);
+            }
+            std::memcpy(&actual,pixels.data()+64+y*pitch+x*4,4);
+            std::memcpy(&actualDepth,depth+(y*width+x)*4,4);
+            if(actual!=expected)colorFailures++;
+            if(actualDepth!=expectedDepth)depthFailures++;
+        }
+        for(int y=0;y<height;y++)for(int x=width*4;x<pitch;x++)if(pixels[64+y*pitch+x]!=0xA5)guardFailures++;
+        for(int i=0;i<64;i++)if(pixels[i]!=0xA5 || pixels[pixels.size()-1-i]!=0xA5)guardFailures++;
+        bb_material_forget(surface);SDL_FreeSurface(surface);frames++;
+    }
+    snprintf(result,sizeof(result),"{\"frames\":%u,\"colorFailures\":%u,\"depthFailures\":%u,\"guardFailures\":%u}",frames,colorFailures,depthFailures,guardFailures);
+    return result;
+}
 EMSCRIPTEN_KEEPALIVE int bb_qa_weapon(int player,int id){
     auto* p=playerAt(player);if(!p || !bb_in_game || id<0 || id>4)return -1;
     // Start from the original empty/default-weapon state so pickup priority

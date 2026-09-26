@@ -432,6 +432,7 @@ bool Game::joueNiveau(const char* nom_niveau, int type) {
 
     debug << "Available video memory : " << (vid_mem2 >> 10) << " Ko\n";*/
 
+    bb_prepare_frame(false);
     bb_level_begin(player1, player2);
     bb_checkpoint(nom_niveau);
     emscripten_sleep(200);
@@ -481,6 +482,7 @@ bool Game::joueNiveau(const char* nom_niveau, int type) {
     }
 
     bb_in_game = false;
+    bb_prepare_frame(false);
     if (joueurs_morts) debug << "Players died\n";
     if (niveau_fini) debug << "Level complete\n";
     if (skipped) debug << "User skipped\n";
@@ -1120,6 +1122,7 @@ void Game::updateAll() {
 //-----------------------------------------------------------------------------
 
 void Game::drawAll(bool flip) {
+    bb_prepare_frame(bb_in_game && rpg_to_play==-1);
     manageMsg();  // Fucking windaube!!!
 
     if (checkRestore()) update_regulator_.Skip();
@@ -1169,8 +1172,7 @@ void Game::drawAll(bool flip) {
 
     // FIXME: Disable it for now as it works unproperly at least on Linux
     // drawTremblements();
-    drawHUB();
-    drawTimer();
+    // Browser HTML HUD stays crisp, responsive and clear of the playfield.
     go_.Draw();
     DrawCollection(list_txt_cool);
 
@@ -2248,60 +2250,19 @@ void Game::updateDeformation() {
 //-----------------------------------------------------------------------------
 
 void Game::drawDeformation() {
-    DDBLTFX ddfx;
-    Rect r;
-    int pas = 20;
-    int phi = phi_deform;
-    int dphi = 10;
-    int x;
-    int xt;
-
-    memset(&ddfx, 0, sizeof(ddfx));
-    ddfx.dwSize = sizeof(ddfx);
-    ddfx.dwFillColor = 0;  // Noir
-
-    pas = 2;
-    dphi = 1;
-
-    for (int y = 0; y < 480; y += pas) {
-        phi += dphi;
-        phi %= 360;
-
-        r.top = y;
-        r.bottom = y + pas;
-
-        x = xt = sini(5, phi);
-
-        // FIXME: This is absolutely wrong. We are copying a memory location to
-        // another that is overlapping (moving a line a few pixels). Depending
-        // on the order of overlap, we might be (and are) overwriting the data
-        // we're copying from and screwing everything up.  A temp satisfying
-        // fix would involve allocating a third surface to safely copy or doing
-        // it ourselves by locking the surface into host memory. A long term
-        // and much better fix is using pixel shaders.
-
-        if (x < 0) {
-            r.left = -x;
-            r.right = 640;
-            x = 0;
-        } else {
-            r.left = 0;
-            r.right = 640 - x;
-        }
-
-        backSurface->BltFast(
-            x, y, backSurface, &r, DDBLTFAST_WAIT | DDBLTFAST_NOCOLORKEY);
-
-        if (xt < 0) {
-            r.left = 640 + xt;
-            r.right = 640;
-        } else {
-            r.left = 0;
-            r.right = xt;
-        }
-
-        backSurface->Blt(&r, NULL, NULL, DDBLT_WAIT | DDBLT_COLORFILL, &ddfx);
+    // The original two-pixel water bands use a small horizontal sine shift.
+    // Never self-blit overlapping RGBA pixels: SDL may alpha-blend them in place.
+    // One immutable color/depth snapshot makes every row independent of writes.
+    const int height=backSurface->Get()->h;
+    std::vector<int> offsets(height);
+    int phi=phi_deform;
+    for(int y=0;y<height;y+=2){
+        phi=(phi+1)%360;
+        const int shift=sini(5,phi);
+        offsets[y]=shift;
+        if(y+1<height)offsets[y+1]=shift;
     }
+    bb_material_warp_rows(backSurface->Get(),offsets.data(),height);
 }
 
 //-----------------------------------------------------------------------------

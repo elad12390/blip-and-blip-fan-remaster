@@ -22,8 +22,8 @@ def compile_one(src):
  return str(obj)
 with concurrent.futures.ThreadPoolExecutor(max_workers=min(8,os.cpu_count() or 4)) as pool:
  objects=list(pool.map(compile_one,sources))
-exports=['_main','_bb_start','_bb_set_input','_bb_set_input2','_bb_set_players','_bb_set_upgrades','_bb_pause','_bb_volume','_bb_state_json']
-if QA: exports += ['_bb_qa_weapon','_bb_qa_health','_bb_qa_hit_player','_bb_qa_die','_bb_qa_finish_level','_bb_qa_cows','_bb_qa_pickup_health','_bb_qa_damage','_bb_qa_state_json']
+exports=['_main','_bb_start','_bb_set_input','_bb_set_input2','_bb_set_players','_bb_set_upgrades','_bb_pause','_bb_set_viewport','_bb_volume','_bb_state_json']
+if QA: exports += ['_bb_qa_water_regression','_bb_qa_weapon','_bb_qa_health','_bb_qa_hit_player','_bb_qa_die','_bb_qa_finish_level','_bb_qa_cows','_bb_qa_pickup_health','_bb_qa_damage','_bb_qa_state_json']
 import json
 subprocess.run([CC,*COMMON,*objects,'-sASYNCIFY=1','-sASYNCIFY_STACK_SIZE=1048576','-sALLOW_MEMORY_GROWTH=1','-sINITIAL_MEMORY=268435456','-sSTACK_SIZE=4194304','-sFORCE_FILESYSTEM=1','-sEXIT_RUNTIME=0','-sEXPORTED_FUNCTIONS='+json.dumps(exports),'-sEXPORTED_RUNTIME_METHODS=["ccall","cwrap","callMain","FS","UTF8ToString","HEAPU8"]','-o',str(OUTPUT/'blipblop.js')],check=True)
 print('Built complete browser game:',OUTPUT/'blipblop.js',flush=True)

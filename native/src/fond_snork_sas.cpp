@@ -85,19 +85,19 @@ void FondSnorkSas1::affiche()
 	r.top		= 222 - etape;
 	r.left		= 0;
 
-	if (x + 53 > offset + 640)
-		largeur = offset + 640 - x;
-	else if (x < offset) {
+	if (x + 53 > bb_camera_x + bb_view_width)
+		largeur = bb_camera_x + bb_view_width - x;
+	else if (x < bb_camera_x) {
 		largeur = 53;
-		r.left = offset - x;
-		decalage = offset - x;
+		r.left = bb_camera_x - x;
+		decalage = bb_camera_x - x;
 	} else
 		largeur = 53;
 
 	r.right		= largeur;
 	r.bottom	= 222;
 
-	backSurface->BltFast(x - offset + decalage, y , surf, &r, DDBLTFAST_SRCCOLORKEY | DDBLTFAST_WAIT);
+	backSurface->BltFast(x - bb_camera_x + decalage, y , surf, &r, DDBLTFAST_SRCCOLORKEY | DDBLTFAST_WAIT);
 }
 
 
@@ -142,17 +142,17 @@ void FondSnorkSas2::affiche()
 	r.top		= 222 - etape;
 	r.left		= 0;
 
-	if (x + 53 > offset + 640)
-		largeur = offset + 640 - x;
-	else if (x < offset) {
+	if (x + 53 > bb_camera_x + bb_view_width)
+		largeur = bb_camera_x + bb_view_width - x;
+	else if (x < bb_camera_x) {
 		largeur = 53;
-		r.left = offset - x;
-		decalage = offset - x;
+		r.left = bb_camera_x - x;
+		decalage = bb_camera_x - x;
 	} else
 		largeur = 53;
 
 	r.right		= largeur;
 	r.bottom	= 222;
 
-	backSurface->BltFast(x - offset + decalage, y , surf, &r, DDBLTFAST_SRCCOLORKEY | DDBLTFAST_WAIT);
+	backSurface->BltFast(x - bb_camera_x + decalage, y , surf, &r, DDBLTFAST_SRCCOLORKEY | DDBLTFAST_WAIT);
 }

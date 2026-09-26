@@ -23,7 +23,7 @@ For another port:
 npm run dev -- --port 8437
 ```
 
-The development server listens on the machine's network interfaces. A phone on the same network can use `http://<computer-LAN-IP>:8436` when the computer's firewall permits it. Prefer landscape for the touch layout. The server explicitly supplies the WebAssembly MIME type and cross-origin isolation headers. The game cannot be opened reliably through `file://`.
+The development server listens on the machine's network interfaces. A phone on the same network can use `http://<computer-LAN-IP>:8436` when the computer's firewall permits it. Portrait uses a separate control dock; landscape places controls over the lower corners of the playfield. Gameplay adapts its camera width to the available screen instead of stretching a fixed 4:3 picture. The server explicitly supplies the WebAssembly MIME type and cross-origin isolation headers. The game cannot be opened reliably through `file://`.
 
 ## Modes and saves
 
@@ -54,7 +54,9 @@ Original and Roguelite have separate local high-score boards. They use native sc
 
 In two-player mode, browser gamepad slot 0 controls P1 and slot 1 controls P2. Either controller can confirm briefings or pause. Controller slots stay assigned if the other controller disconnects. Button names above use the standard Xbox-style layout; labels on other controllers may differ.
 
-Touch uses the left move/aim pad and separate Fire, Jump, Cow and Continue controls. Controls can be shown automatically, always shown or hidden through **Controls**. Original advanced movement remains in the native engine, including repeated-jump acrobatics and double-down platform dropping.
+Touch uses a floating move/aim stick and separate Fire, Jump and Cow controls. Hold movement and Fire together, then tap Jump with another finger. Continue appears for dialogue and cinematics. **Controls & display** offers a fixed or floating stick, comfortable or extra-large buttons, left- or right-handed placement, touch visibility, optional Auto fire, lighting and reduced motion. Auto fire is off by default and pauses with the game. Preferences persist on this browser. Original advanced movement remains in the native engine, including repeated-jump acrobatics and double-down platform dropping.
+
+The HTML HUD displays health, lives, weapon/ammunition, score, cow bombs and active encounter countdowns, including the second player's inventory in co-op. The original cinematics retain their authored composition within the responsive display.
 
 ## Build and test
 
@@ -74,7 +76,7 @@ npm test
 npm run build
 ```
 
-`npm run build` is the **static packaging step**, not the C++ compiler. It requires `web/core/blipblop.js`, `web/core/blipblop.wasm`, the staged data and browser assets to exist first. It enforces a 25 MiB limit per packaged file. It does not deploy anything.
+`npm run build` is the **static packaging step**, not the C++ compiler. It requires `web/core/blipblop.js`, `web/core/blipblop.wasm`, the staged data and browser assets to exist first. It enforces a 25 MiB limit per packaged file and stamps CSS, JavaScript, native engine and data-manifest requests with a content-derived release revision. Verified original resources retain their SHA-based cache keys across releases. It does not deploy anything.
 
 The C++ build uses `scripts/build_wasm.py`, C++17, Emscripten Asyncify, SDL2 and SDL2_mixer. It compiles incrementally with up to eight parallel compiler processes and links the engine bridge plus `enhancements/browser_material.cpp`. Its configured compiler path is `toolchains/emsdk/install/emscripten/em++`, and its configuration file is `toolchains/emsdk/.emscripten`. If the project moves, regenerate that configuration's absolute paths before rebuilding.
 

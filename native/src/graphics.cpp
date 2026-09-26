@@ -1,5 +1,6 @@
 #include "graphics.h"
 #include "browser_material.h"
+#include "browser_bridge.h"
 #include <emscripten.h>
 
 #include "errors.h"
@@ -118,10 +119,7 @@ bool Graphics::SetColorKey(SDL::Surface* surf, Pixel rgb) {
 }
 
 void Graphics::Flip() {
-    if (!backSurface) return;
-    SDL_Surface* surface=backSurface->Get();
-    unsigned char* depth=bb_material_pixels(surface);
-    EM_ASM({ if(Module.onFrame) Module.onFrame($0,$1,$2,$3,$4); },surface->pixels,surface->w,surface->h,surface->pitch,depth);
+    bb_present_frame();
     emscripten_sleep(1);
 }
 void Graphics::FlipV() { Flip(); }

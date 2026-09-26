@@ -179,15 +179,16 @@ void Picture::BlitTo(SDL::Surface * s, int x, int y) const
 
 
 	// S'il n'y a rien à afficher, on se casse tout de suite!
-	if (x > XPIC_MAX || x2 < 0 || y > YPIC_MAX || y2 < 0)
+	const int canvasWidth=s->Get()->w, canvasHeight=s->Get()->h;
+	if (x > canvasWidth || x2 < 0 || y > canvasHeight || y2 < 0)
 		return;
 
 	Rect	r;
 
 	r.left	= (x < 0) ? -x : 0;
 	r.top	= (y < 0) ? -y : 0;
-	r.right	= (x2 > XPIC_MAX) ? XPIC_MAX - x : xsize;
-	r.bottom = (y2 > YPIC_MAX) ? YPIC_MAX - y : ysize;
+	r.right	= (x2 > canvasWidth) ? canvasWidth - x : xsize;
+	r.bottom = (y2 > canvasHeight) ? canvasHeight - y : ysize;
 
 	if (x < 0) x = 0;
 	if (y < 0) y = 0;
@@ -222,15 +223,16 @@ void Picture::PasteTo(SDL::Surface * s, int x, int y) const
 
 
 	// S'il n'y a rien à afficher, on se casse tout de suite!
-	if (x > XPIC_MAX || x2 < 0 || y > YPIC_MAX || y2 < 0)
+	const int canvasWidth=s->Get()->w, canvasHeight=s->Get()->h;
+	if (x > canvasWidth || x2 < 0 || y > canvasHeight || y2 < 0)
 		return;
 
 	Rect	r;
 
 	r.left	= (x < 0) ? -x : 0;
 	r.top	= (y < 0) ? -y : 0;
-	r.right	= (x2 > XPIC_MAX) ? XPIC_MAX - x : xsize;
-	r.bottom = (y2 > YPIC_MAX) ? YPIC_MAX - y : ysize;
+	r.right	= (x2 > canvasWidth) ? canvasWidth - x : xsize;
+	r.bottom = (y2 > canvasHeight) ? canvasHeight - y : ysize;
 
 	if (x < 0) x = 0;
 	if (y < 0) y = 0;

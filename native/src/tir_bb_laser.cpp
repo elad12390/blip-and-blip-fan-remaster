@@ -121,7 +121,7 @@ void TirBBLaser::affiche()
 {
 	SDL::Surface *	surf = pbk_bb[base + etape]->Surf();
 	Rect	r;
-	int		xx = x - offset;
+	int		xx = x - bb_camera_x;
 	int		nx = x;
 	int		ny = y;
 
@@ -160,14 +160,14 @@ void TirBBLaser::affiche()
 			r.left	 = 0;
 			r.bottom = 6;
 
-			if (xx + largeur > 640)
-				r.right = 640 - xx;
+			if (xx + largeur > bb_view_width)
+				r.right = bb_view_width - xx;
 			else
 				r.right = largeur;
 
 			backSurface->BltFast(xx, y, surf, &r, DDBLTFAST_NOCOLORKEY | DDBLTFAST_WAIT);
 
-			if (xx + largeur < 640)
+			if (xx + largeur < bb_view_width)
 				draw(x + largeur, y + 3, pbk_misc[74 + etape]);
 			break;
 
@@ -218,11 +218,10 @@ void TirBBLaser::affiche()
 			r.left	 = 0;
 			r.bottom = 6;
 
-			if (xx < 0) {
-				r.right = largeur - xx;
-				xx = 0;
-			} else
-				r.right  = largeur;
+            // SDL clips both the source and destination together. Moving a
+            // negative destination to zero here would shift/extend the beam
+            // when a narrow responsive camera cuts through its left end.
+            r.right = largeur;
 
 			backSurface->BltFast(xx, y, surf, &r, DDBLTFAST_NOCOLORKEY | DDBLTFAST_WAIT);
 

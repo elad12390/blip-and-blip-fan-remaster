@@ -11,6 +11,33 @@ extern Game game;
 int bb_mode=0, bb_part=0, bb_start_part=0, bb_player=0, bb_players=1;
 int bb_armor=0, bb_firepower=0, bb_supply=0;
 bool bb_running=false, bb_paused=false, bb_game_over=false, bb_completed=false, bb_in_game=false;
+int bb_view_width=640, bb_view_height=480, bb_camera_x=0;
+bool bb_gameplay_frame=false;
+static int requestedWidth=640;
+
+void bb_prepare_frame(bool gameplay) {
+    bb_gameplay_frame=gameplay;
+    const int width=gameplay?requestedWidth:640;
+    if(backSurface && backSurface->Resize(width,480)) {
+        bb_view_width=width;bb_view_height=480;
+        if(primSurface)primSurface->Resize(width,480);
+        if(systemSurface)systemSurface->Resize(width,480);
+    }
+    if(!gameplay){bb_camera_x=offset;return;}
+    // Narrow screens track the hero inside an authored locked encounter; wide
+    // screens reveal the real surrounding world. Nothing is stretched/cropped.
+    auto* p=game.browserPlayer(0);auto* p2=game.browserPlayer(1);
+    int center=p?p->x:offset+320;
+    if(p2 && p2->nb_life>0 && bb_view_width>=640 && p && p->nb_life>0)center=(p->x+p2->x)/2;
+    else if((!p || p->nb_life<=0) && p2)center=p2->x;
+    bb_camera_x=std::clamp(center-bb_view_width*45/100,0,std::max(0,level_size-bb_view_width));
+}
+void bb_present_frame() {
+    if(!backSurface)return;
+    SDL_Surface* surface=backSurface->Get();
+    unsigned char* depth=bb_material_pixels(surface);
+    EM_ASM({if(Module.onFrame)Module.onFrame($0,$1,$2,$3,$4);},surface->pixels,surface->w,surface->h,surface->pitch,depth);
+}
 static int masks[2]={0,0}, pending=0, damageRemainder=0;
 static char currentLevel[200]="Ready";
 static char stateBuffer[2048];
@@ -27,6 +54,15 @@ void bb_yield(){
     while(bb_paused && !app_killed) emscripten_sleep(30);
 }
 extern "C" {
+EMSCRIPTEN_KEEPALIVE void bb_set_viewport(int width,int height){
+    if(width<=0 || height<=0)return;
+    const int nextWidth=(int)std::clamp<long long>((long long)width*480/height,240,2560);
+    if(requestedWidth==nextWidth)return;
+    requestedWidth=nextWidth;
+    // A paused game has no simulation ticks, but rotation must still redraw.
+    // This path does not yield and never enters another Asyncify suspension.
+    if(bb_in_game && bb_paused && rpg_to_play==-1){game.drawAll(false);bb_present_frame();}
+}
 EMSCRIPTEN_KEEPALIVE void bb_set_input(int mask){masks[0]=mask;}
 EMSCRIPTEN_KEEPALIVE void bb_set_input2(int mask){masks[1]=mask;}
 EMSCRIPTEN_KEEPALIVE void bb_set_players(int count){bb_players=count==2?2:1;}
@@ -41,11 +77,11 @@ EMSCRIPTEN_KEEPALIVE void bb_start(int mode,int player,int part){
 EMSCRIPTEN_KEEPALIVE const char* bb_state_json(){
     Couille* p=game.browserPlayer(0);Couille* p2=game.browserPlayer(1);
     snprintf(stateBuffer,sizeof(stateBuffer),
-      "{\"inGame\":%s,\"running\":%s,\"paused\":%s,\"mode\":\"%s\",\"part\":%d,\"level\":\"%s\",\"player\":%d,\"players\":%d,\"x\":%d,\"y\":%d,\"hp\":%d,\"maxHp\":%d,\"lives\":%d,\"weapon\":%d,\"ammo\":%d,\"cows\":%d,\"score\":%d,\"kills\":%d,\"offset\":%d,\"gameOver\":%s,\"completed\":%s,\"firing\":%s,\"player2\":{\"x\":%d,\"y\":%d,\"hp\":%d,\"lives\":%d}}",
+      "{\"inGame\":%s,\"running\":%s,\"paused\":%s,\"mode\":\"%s\",\"part\":%d,\"level\":\"%s\",\"player\":%d,\"players\":%d,\"x\":%d,\"y\":%d,\"hp\":%d,\"maxHp\":%d,\"lives\":%d,\"weapon\":%d,\"ammo\":%d,\"cows\":%d,\"score\":%d,\"kills\":%d,\"offset\":%d,\"cameraX\":%d,\"viewportWidth\":%d,\"viewportHeight\":%d,\"frameIsGameplay\":%s,\"nativeHud\":false,\"bonusTimer\":%d,\"gameOver\":%s,\"completed\":%s,\"firing\":%s,\"player2\":{\"x\":%d,\"y\":%d,\"hp\":%d,\"lives\":%d,\"weapon\":%d,\"ammo\":%d,\"cows\":%d}}",
       bb_in_game?"true":"false",bb_running?"true":"false",bb_paused?"true":"false",bb_mode?"roguelite":"original",bb_part,currentLevel,bb_player,bb_players,
-      p?p->x-offset:0,p?p->y:0,p?p->pv:0,bb_max_hp(),p?p->nb_life:0,p?p->id_arme:0,p?p->ammo:0,p?p->nb_cow_bomb:0,
-      (p?p->getScore():0)+(p2?p2->getScore():0),game_flag[FLAG_NB_KILL],offset,bb_game_over?"true":"false",bb_completed?"true":"false",p&&p->tire?"true":"false",
-      p2?p2->x-offset:0,p2?p2->y:0,p2?p2->pv:0,p2?p2->nb_life:0);
+      p?p->x-bb_camera_x:0,p?p->y:0,p?p->pv:0,bb_max_hp(),p?p->nb_life:0,p?p->id_arme:0,p?p->ammo:0,p?p->nb_cow_bomb:0,
+      (p?p->getScore():0)+(p2?p2->getScore():0),game_flag[FLAG_NB_KILL],offset,bb_camera_x,bb_view_width,bb_view_height,bb_gameplay_frame?"true":"false",game_flag[FLAG_TIMER],bb_game_over?"true":"false",bb_completed?"true":"false",p&&p->tire?"true":"false",
+      p2?p2->x-bb_camera_x:0,p2?p2->y:0,p2?p2->pv:0,p2?p2->nb_life:0,p2?p2->id_arme:0,p2?p2->ammo:0,p2?p2->nb_cow_bomb:0);
     return stateBuffer;
 }
 }
@@ -73,7 +109,7 @@ void bb_run(){
     for(;;){
         while(!pending)emscripten_sleep(30);
         pending=0;app_killed=false;bb_running=true;bb_game_over=bb_completed=false;damageRemainder=0;
-        bb_part=bb_start_part;bb_in_game=false;
+        bb_part=bb_start_part;bb_in_game=false;bb_prepare_frame(false);
         if(bb_start_part==0){
             snprintf(currentLevel,sizeof(currentLevel),"Opening cinematic");
             CINEPlayer intro;intro.loadPBK("data/intro.gfx");

@@ -33,14 +33,14 @@ void FondPokeCiel::affiche()
 	r.top		= 0;
 	r.left		= etape;
 
-	if (x + 192 > offset + 640) {
-		largeur = offset + 640 - x;
+	if (x + 192 > bb_camera_x + bb_view_width) {
+		largeur = bb_camera_x + bb_view_width - x;
 	}
 
-	else if (x < offset) {
+	else if (x < bb_camera_x) {
 		largeur = 192 ;
-		r.left = offset - x + etape;
-		decalage = offset - x;
+		r.left = bb_camera_x - x + etape;
+		decalage = bb_camera_x - x;
 	} else {
 		largeur = 192;
 	}
@@ -48,19 +48,19 @@ void FondPokeCiel::affiche()
 	r.right		= etape + largeur;
 	r.bottom	= ys;
 
-	/*if ( x+53 > offset+640)
-		largeur = offset+640-x;
-	else if (x < offset)
+	/*if ( x+53 > bb_camera_x+640)
+		largeur = bb_camera_x+640-x;
+	else if (x < bb_camera_x)
 	{
 		largeur = 53;
-		r.left = offset - x;
-		decalage = offset - x;
+		r.left = bb_camera_x - x;
+		decalage = bb_camera_x - x;
 	}
 	else
 		largeur = 53;*/
 
 
-	backSurface->BltFast(x - offset + decalage, y + 50, surf, &r, DDBLTFAST_WAIT | DDBLTFAST_NOCOLORKEY);
+	backSurface->BltFast(x - bb_camera_x + decalage, y + 50, surf, &r, DDBLTFAST_WAIT | DDBLTFAST_NOCOLORKEY);
 
 
 	draw(x, y, pbk_niveau[49]);

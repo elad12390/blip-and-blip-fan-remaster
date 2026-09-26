@@ -28,6 +28,7 @@
 #include "scroll.h"
 #include "ben_debug.h"
 #include <SDL2/SDL.h>
+#include <algorithm>
 
 #include "couille.h"
 
@@ -50,8 +51,6 @@ void drawScrolling()
 	else if (offset > level_size - 640)
 		offset = level_size - 640;
 
-	int	x1 = offset % vbuffer_wide;
-	int x2 = (offset + 640) % vbuffer_wide;
 	int x3 = (offset + vbuffer_wide - 2) % vbuffer_wide;
 
 	r.top	= 0;
@@ -88,22 +87,35 @@ void drawScrolling()
 		}
 	}
 
-	if (x1 <= vbuffer_wide - 640) {
-		r.left	= x1;
-		r.right = x1 + 640;
+	// Tile the authored world into the complete responsive framebuffer. The
+    // original ring remains the persistent decal cache for the active encounter.
+    // Rendering beyond it must not advance event triggers or boss arena locks.
+    backSurface->FillRect(nullptr,0xFF000000);
+    const int width=backSurface->Get()->w;
+    int screenX=0;
+    while(screenX<width && scr_level_size>0){
+        const int worldX=bb_camera_x+screenX;
+        const int tile=std::clamp(worldX/640,0,scr_level_size-1);
+        const int tileX=((worldX%640)+640)%640;
+        const int count=std::min(width-screenX,640-tileX);
+        Rect source={tileX,0,tileX+count,480};
+        backSurface->BltFast(screenX,0,pbk_decor[num_decor[tile]]->Surf(),&source,DDBLTFAST_NOCOLORKEY);
+        screenX+=count;
+    }
+    // Overlay the cached region, including blood/scenery damage already drawn
+    // by grave(). Each ring segment corresponds to its real world coordinate.
+    const int cachedEnd=std::min(level_size,n_img*640+xTex);
+    const int cachedStart=std::max(0,cachedEnd-vbuffer_wide);
+    int worldX=std::max(bb_camera_x,cachedStart);
+    const int end=std::min(bb_camera_x+width,cachedEnd);
+    while(worldX<end){
+        const int ringX=worldX%vbuffer_wide;
+        const int count=std::min(end-worldX,vbuffer_wide-ringX);
+        Rect source={ringX,0,ringX+count,480};
+        backSurface->BltFast(worldX-bb_camera_x,0,videoA,&source,DDBLTFAST_NOCOLORKEY);
+        worldX+=count;
+    }
 
-		backSurface->BltFast(0, 0, videoA, &r, DDBLTFAST_WAIT | DDBLTFAST_NOCOLORKEY);
-	} else {
-		r.left	= x1;
-		r.right = vbuffer_wide;
-
-		backSurface->BltFast(0, 0, videoA, &r, DDBLTFAST_WAIT | DDBLTFAST_NOCOLORKEY);
-
-		r.left	= 0;
-		r.right = x2;
-
-		backSurface->BltFast(vbuffer_wide - x1, 0, videoA, &r, DDBLTFAST_WAIT | DDBLTFAST_NOCOLORKEY);
-	}
 }
 
 //-----------------------------------------------------------------------------

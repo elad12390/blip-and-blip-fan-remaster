@@ -46,14 +46,14 @@ void FondAssembleur::affiche()
 	r.top		= etape;
 	r.left		= 0;
 
-	if (x + 75 > offset + 640)
-		largeur = offset + 640 - x;
+	if (x + 75 > bb_camera_x + bb_view_width)
+		largeur = bb_camera_x + bb_view_width - x;
 	else
 		largeur = 75;
 
 	r.right		= largeur;
 	r.bottom	= 87 + etape;
 
-	backSurface->BltFast(x - offset, y, surf, &r, DDBLTFAST_WAIT | DDBLTFAST_NOCOLORKEY);
+	backSurface->BltFast(x - bb_camera_x, y, surf, &r, DDBLTFAST_WAIT | DDBLTFAST_NOCOLORKEY);
 
 }

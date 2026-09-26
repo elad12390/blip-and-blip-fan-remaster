@@ -90,7 +90,7 @@ void EnnemiPic::affiche()
 	r.right		= 39;
 	r.bottom	= -y_origine;
 
-	backSurface->BltFast(x - offset , y , surf, &r, DDBLTFAST_SRCCOLORKEY | DDBLTFAST_WAIT);
+	backSurface->BltFast(x - bb_camera_x , y , surf, &r, DDBLTFAST_SRCCOLORKEY | DDBLTFAST_WAIT);
 }
 
 void EnnemiPic::colFromPic()

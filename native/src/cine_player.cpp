@@ -46,6 +46,7 @@ void CINEPlayer::initPlayer()
 
 bool CINEPlayer::playScene(const char * file, SDL::Surface * s1, SDL::Surface * s2)
 {
+	bb_prepare_frame(false);
 	bool	skiped = false;
 	/*
 		debug<<"---------------------------------------------------------------\n";

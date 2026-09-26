@@ -142,3 +142,59 @@ test('old saves gain empty boards and imported records are validated and dedupli
   }
   assert.deepEqual(getHighScores(save, 'unknown'), []);
 });
+
+test('first-version saves gain usable touch defaults without enabling auto fire or changing progress', () => {
+  const oldSave = {
+    version: 1, mode: 'roguelite', shards: 37, deaths: 4,
+    upgrades: { armor: 2, firepower: 1, supply: 1 },
+    checkpoint: { mode: 'roguelite', part: 13, player: 1, players: 2 },
+    settings: { graphics: 'original', volume: 0.3, touch: 'on' },
+  };
+  const migrated = normalizeSave(oldSave);
+  assert.deepEqual(migrated.settings, {
+    graphics: 'original', volume: 0.3, touch: 'on', reducedMotion: false,
+    handedness: 'right', controlSize: 'comfortable', joystick: 'floating', autoFire: false,
+  });
+  assert.equal(migrated.shards, 37);
+  assert.equal(migrated.deaths, 4);
+  assert.deepEqual(migrated.upgrades, oldSave.upgrades);
+  assert.equal(migrated.checkpoint.part, 13);
+  assert.equal(migrated.checkpoint.players, 2);
+  assert.equal(migrated.mode, 'roguelite');
+});
+
+test('control preferences survive export, import and storage reload independently of game mode', () => {
+  const save = freshSave();
+  Object.assign(save.settings, {
+    touch: 'on', handedness: 'left', controlSize: 'large', joystick: 'fixed', autoFire: true,
+    reducedMotion: true, graphics: 'depth', volume: 0.25,
+  });
+  const exported = JSON.stringify(save);
+  const imported = normalizeSave(JSON.parse(exported));
+  assert.deepEqual(imported.settings, save.settings);
+  imported.mode = 'roguelite';
+  let stored;
+  const storage = { getItem: () => stored, setItem: (_, value) => { stored = value; } };
+  assert.equal(writeSave(imported, storage), true);
+  const reloaded = readSave(storage);
+  assert.deepEqual(reloaded.settings, save.settings);
+  assert.equal(reloaded.mode, 'roguelite');
+  assert.deepEqual(reloaded.upgrades, { armor: 0, firepower: 0, supply: 0 }, 'an input preference does not apply gameplay upgrades');
+});
+
+test('malformed imported touch preferences cannot enable auto fire or invalidate the controller layout', () => {
+  const defaults = freshSave().settings;
+  for (const settings of [null, undefined, 'bad', {
+    touch: 'sometimes', handedness: 'ambidextrous', controlSize: -20, joystick: 'accelerometer',
+    autoFire: 'true', reducedMotion: 'false', volume: NaN, graphics: 'webgpu',
+  }]) {
+    assert.deepEqual(normalizeSave({ version: 1, settings }).settings, defaults);
+  }
+  for (const truthyValue of [1, 'on', [], {}]) {
+    assert.equal(normalizeSave({ version: 1, settings: { autoFire: truthyValue } }).settings.autoFire, false);
+  }
+  const explicit = normalizeSave({ version: 1, settings: {
+    handedness: 'right', controlSize: 'comfortable', joystick: 'floating', autoFire: false,
+  } });
+  assert.deepEqual(explicit.settings, defaults);
+});

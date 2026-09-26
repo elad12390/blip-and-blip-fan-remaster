@@ -34,7 +34,7 @@ export const UPGRADE_DEFS = [
   { id: 'supply', name: 'Care package', description: 'An extra cow bomb at the start of each level.', max: 3, baseCost: 18 },
 ];
 export function freshSave() {
-  return { version: 1, shards: 0, upgrades: { armor: 0, firepower: 0, supply: 0 }, deaths: 0, bestScore: 0, checkpoint: null, settledRuns: [], highScores: { original: [], roguelite: [] }, scoredRuns: { original: [], roguelite: [] }, settings: { graphics: 'enhanced', volume: 0.65, touch: 'auto', reducedMotion: false }, mode: 'original' };
+  return { version: 1, shards: 0, upgrades: { armor: 0, firepower: 0, supply: 0 }, deaths: 0, bestScore: 0, checkpoint: null, settledRuns: [], highScores: { original: [], roguelite: [] }, scoredRuns: { original: [], roguelite: [] }, settings: { graphics: 'enhanced', volume: 0.65, touch: 'auto', reducedMotion: false, handedness: 'right', controlSize: 'comfortable', joystick: 'floating', autoFire: false }, mode: 'original' };
 }
 export function normalizeSave(raw) {
   const out = freshSave();
@@ -58,6 +58,10 @@ export function normalizeSave(raw) {
   if (['original', 'enhanced', 'depth'].includes(raw.settings?.graphics)) out.settings.graphics = raw.settings.graphics;
   if (Number.isFinite(raw.settings?.volume)) out.settings.volume = Math.max(0, Math.min(1, raw.settings.volume));
   if (['auto', 'on', 'off'].includes(raw.settings?.touch)) out.settings.touch = raw.settings.touch;
+  if (['left', 'right'].includes(raw.settings?.handedness)) out.settings.handedness = raw.settings.handedness;
+  if (['comfortable', 'large'].includes(raw.settings?.controlSize)) out.settings.controlSize = raw.settings.controlSize;
+  if (['floating', 'fixed'].includes(raw.settings?.joystick)) out.settings.joystick = raw.settings.joystick;
+  out.settings.autoFire = raw.settings?.autoFire === true;
   out.settings.reducedMotion = raw.settings?.reducedMotion === true;
   return out;
 }
