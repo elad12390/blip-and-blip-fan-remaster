@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#141a16"><meta name="description" content="Blip & Blop, rebuilt for the browser. Original campaign, enhanced lighting, and an optional Roguelite mode.">
+  <title>Blip & Blop — Remastered</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%23202920'/%3E%3Ccircle cx='23' cy='33' r='16' fill='%23e7c557'/%3E%3Ccircle cx='43' cy='33' r='16' fill='%2370bce0'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar"><a class="wordmark" href="./" aria-label="Blip and Blop home">B<span>&</span>B <small>REMASTERED</small></a><div class="edition"><span class="status-dot"></span> BROWSER EDITION <span class="divider">/</span> 2002 → NOW</div><button id="help-button" class="text-button">Controls <span>↗</span></button></header>
+  <main>
+    <section id="home" class="home">
+      <div class="hero">
+        <div class="hero-art" aria-hidden="true"><div class="art-grain"></div><div class="hero-portraits"><img src="assets/blip.png" alt=""><img src="assets/blop.png" alt=""></div></div>
+        <div class="hero-copy"><p class="eyebrow">LOADED STUDIO’S CULT CLASSIC</p><h1>BLIP<span class="amp">&</span><br>BLOP<span class="period">.</span></h1><div class="title-rule"><span>BALLS OF STEEL</span><span>REMASTERED</span></div><p class="hero-description">Two unlikely heroes.<br>One very unfriendly childhood.</p><p class="hero-footnote">The original campaign. A new way to play.</p></div>
+        <div class="hero-stamp">EST.<br><strong>2002</strong><span>BACK FOR MORE</span></div>
+      </div>
+      <div class="launch-panel">
+        <div class="section-number">01 <span>CHOOSE YOUR RUN</span></div>
+        <div class="mode-choice" role="group" aria-label="Game mode">
+          <button class="mode-card selected" data-mode="original" aria-pressed="true"><span class="mode-top"><span class="mode-symbol">◈</span><span class="mode-pill">THE CLASSIC</span></span><strong>Original</strong><span>The original rules, weapons, and campaign. No persistent upgrades.</span><span class="mode-check">✓</span></button>
+          <button class="mode-card" data-mode="roguelite" aria-pressed="false"><span class="mode-top"><span class="mode-symbol">↻</span><span class="mode-pill">A FRESH START</span></span><strong>Roguelite</strong><span>Keep your progress. Earn shards when you fall. Come back stronger.</span><span class="mode-check">✓</span></button>
+        </div>
+        <div class="launch-options"><label>HERO <select id="hero-select"><option value="0">Blip</option><option value="1">Blop</option></select></label><label>VISUALS <select id="graphics-select"><option value="enhanced">Enhanced lighting</option><option value="original">Original pixels</option><option value="depth">Depth view</option></select></label></div>
+        <label class="party-label">PLAYERS <select id="party-select"><option value="1">Solo</option><option value="2">Local co-op · 2 players</option></select></label>
+        <button id="start-button" class="primary-button"><span>Start campaign</span><span>↗</span></button>
+        <button id="continue-button" class="secondary-button" hidden>Continue from checkpoint <span>→</span></button>
+        <p class="launch-note" id="launch-note">Desktop · Touch · Gamepad<br><span>First launch downloads the original game data.</span></p>
+        <div class="progression-summary" id="progression-summary" hidden><span><b id="shard-count">0</b> SHARDS</span><button id="workshop-button" class="text-button">Visit workshop →</button></div>
+      </div>
+      <section class="details-strip"><div><span class="detail-index">01 /</span><strong>The full journey</strong><p>Original level data, encounters, bosses, music, and story.</p></div><div><span class="detail-index">02 /</span><strong>A little more dimension</strong><p>Surface depth, reactive lighting, and the pixels you remember.</p></div><div><span class="detail-index">03 /</span><strong>Your rules</strong><p>Classic play or persistent progression. Switch visuals independently.</p></div></section>
+      <section class="campaign-section"><div class="section-number">02 <span>THE CAMPAIGN</span></div><div id="campaign-list" class="campaign-list"></div></section>
+      <footer><span>Original game © Loaded Studio · Browser adaptation in development</span><button id="scores-button" class="text-button">High scores ↗</button><button id="credits-button" class="text-button">Credits & preservation notes ↗</button></footer>
+    </section>
+    <section id="play" class="play" hidden>
+      <div class="game-toolbar"><div><span class="status-dot"></span><strong id="mode-label">ORIGINAL</strong><span id="stage-label">CAMPAIGN</span><span id="health-status" hidden></span></div><div><span id="save-status" role="status"></span><button id="visual-toggle" class="text-button">Lighting: on</button><button id="fullscreen-button" class="icon-button" aria-label="Fullscreen">⛶</button><button id="pause-button" class="icon-button" aria-label="Pause game">Ⅱ</button></div></div>
+      <div class="game-stage" id="game-stage"><canvas id="screen" width="640" height="480" tabindex="0" aria-label="Blip and Blop game screen. Use arrows to move and aim, J to shoot, Space to jump, and L for a cow bomb."></canvas><canvas id="native-screen" width="640" height="480" tabindex="-1" aria-hidden="true"></canvas>
+        <div class="fullscreen-tools"><span id="fullscreen-health" hidden></span><button id="fullscreen-pause" class="icon-button" aria-label="Pause fullscreen game">Ⅱ</button><button id="fullscreen-exit" class="icon-button" aria-label="Exit fullscreen">×</button></div>
+        <div id="loading" class="loading" hidden><span class="eyebrow">REVIVING A CLASSIC</span><h2 id="loading-title">Loading the game</h2><div class="progress-track"><span id="loading-bar"></span></div><p id="loading-status" role="status">Preparing engine…</p><button id="loading-exit" class="secondary-button" hidden>Return to title</button></div>
+        <div id="pause-overlay" class="game-overlay" hidden><span class="eyebrow">TAKE A BREATHER</span><h2>Paused.</h2><button id="resume-button" class="primary-button">Back to it <span>→</span></button><button id="pause-workshop" class="secondary-button" hidden>Workshop</button><label class="volume-label">VOLUME <input id="volume" type="range" min="0" max="1" step="0.05" value="0.65"></label><button id="exit-button" class="text-button">Return to title</button><p id="pause-save-note"></p></div>
+        <div id="death-overlay" class="game-overlay" hidden><span class="eyebrow">DOWN, BUT NOT OUT</span><h2>Another round?</h2><p id="death-reward"></p><button id="death-workshop" class="primary-button">Upgrade & return <span>↗</span></button><button id="retry-button" class="secondary-button">Retry checkpoint</button><button id="death-exit" class="text-button">Return to title</button></div>
+        <div id="complete-overlay" class="game-overlay" hidden><span class="eyebrow">CAMPAIGN COMPLETE</span><h2>Balls. Of. Steel.</h2><p id="complete-message">You made it through the original campaign.</p><button id="complete-exit" class="primary-button">Back to the title <span>→</span></button></div>
+        <div id="touch-controls" class="touch-controls"><div id="direction-pad" class="direction-pad" aria-label="Move and aim joystick" role="application"><span class="pad-arrows">↑<br>← &nbsp; →<br>↓</span><span class="pad-stick"></span></div><div class="touch-actions"><button data-input="64" class="touch-cow" aria-label="Cow bomb">COW</button><button data-input="32" class="touch-jump" aria-label="Jump">↟<small>JUMP</small></button><button data-input="16" class="touch-fire" aria-label="Fire">✳<small>FIRE</small></button><button data-input="128" class="touch-confirm" aria-label="Confirm or skip dialogue">CONTINUE →</button></div></div>
+      </div>
+      <div class="control-strip"><span><kbd>←</kbd><kbd>→</kbd> move <kbd>↑</kbd><kbd>↓</kbd> aim</span><span><kbd>J</kbd> fire <kbd>SPACE</kbd> jump <kbd>L</kbd> cow bomb</span><span><kbd>ENTER</kbd> continue <kbd>ESC</kbd> pause</span></div>
+    </section>
+  </main>
+  <dialog id="info-dialog"><button class="dialog-close" aria-label="Close dialog">×</button><div id="info-content"></div></dialog>
+  <dialog id="workshop-dialog"><button class="dialog-close" aria-label="Close workshop">×</button><p class="eyebrow">ROGUELITE / FIELD WORKSHOP</p><h2>Built to come back.</h2><p class="dialog-intro">Spend the shards you earn between runs. Upgrades apply only in Roguelite mode.</p><div class="workshop-balance"><span>AVAILABLE SHARDS</span><strong id="workshop-shards">0</strong></div><div id="upgrade-list"></div><button id="workshop-continue" class="primary-button">Return to the fight <span>→</span></button></dialog>
+  <div id="toast" class="toast" role="status" hidden></div>
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

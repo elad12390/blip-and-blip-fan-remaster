@@ -1,0 +1,904 @@
+{
+  "version": 1,
+  "sourceCommit": "68a3e6e3f85f2f7bb52314ad8f92821d079a5f97",
+  "totalBytes": 124429122,
+  "totalCompressedBytes": 53175198,
+  "files": [
+    {
+      "name": "ammo1.lft",
+      "bytes": 3570,
+      "sha256": "499ce7cbaaed82042b771cb6657cfb0fd040675ea8c1e7a4de715da604422e5b",
+      "compressedName": "ammo1.lft.gz",
+      "compressedBytes": 755
+    },
+    {
+      "name": "ammo2.lft",
+      "bytes": 3562,
+      "sha256": "253b6953641bff3b63619331fe0740dabd8984abb89cec7590ad4d8174f3321f",
+      "compressedName": "ammo2.lft.gz",
+      "compressedBytes": 709
+    },
+    {
+      "name": "bb.cfg",
+      "bytes": 61,
+      "sha256": "dbdce022af3a478720a2cd492bbf515b3582f07760ff0aa104d65660b4538b35",
+      "compressedName": "bb.cfg.gz",
+      "compressedBytes": 59
+    },
+    {
+      "name": "bb.gfx",
+      "bytes": 162754,
+      "sha256": "e141eadd9bf5c97eca478bc4d091dc78d25fe1615e88c0e0acbb40e8f8f66dd7",
+      "compressedName": "bb.gfx.gz",
+      "compressedBytes": 59983
+    },
+    {
+      "name": "bb.lst",
+      "bytes": 454,
+      "sha256": "ecae5e91f04f8973f48b290865a386e2c43b7cc1718fedbc97bfcc98d89e7f96",
+      "compressedName": "bb.lst.gz",
+      "compressedBytes": 157
+    },
+    {
+      "name": "bb.scr",
+      "bytes": 244,
+      "sha256": "80763fd1524899b6e6038a89a1220a93cde55e1fe9e81ceeb80d8c87a81cf635",
+      "compressedName": "bb.scr.gz",
+      "compressedBytes": 258
+    },
+    {
+      "name": "bb.sfx",
+      "bytes": 367570,
+      "sha256": "72ac1c14d01a7b071aa1955f3685c4a69d5f578c9f67858a6f0eaaeabc89acd8",
+      "compressedName": "bb.sfx.gz",
+      "compressedBytes": 331577
+    },
+    {
+      "name": "bisou.mbk",
+      "bytes": 53,
+      "sha256": "69cadb617daf9c6461877448ae86251335076c596087f6f3425ebeaa753f9e1a",
+      "compressedName": "bisou.mbk.gz",
+      "compressedBytes": 52
+    },
+    {
+      "name": "bisou.sfx",
+      "bytes": 588150,
+      "sha256": "5570bdce30c63f9a6a94263c851c92fdcc255ca61edcf7f0ad32697adce84e04",
+      "compressedName": "bisou.sfx.gz",
+      "compressedBytes": 376916
+    },
+    {
+      "name": "bisou.zik",
+      "bytes": 3570478,
+      "sha256": "0bde32ac2dba8dbd7a188c66a219c54c313afdf8d92ab8b3ebbfffbf1a8439a8",
+      "compressedName": "bisou.zik.gz",
+      "compressedBytes": 3550793
+    },
+    {
+      "name": "bisou1.rpg",
+      "bytes": 614,
+      "sha256": "9a9a0ee0ec25002d62fb8bdde3336034bdd0ad67552a47d72b5dbef6a7df0052",
+      "compressedName": "bisou1.rpg.gz",
+      "compressedBytes": 231
+    },
+    {
+      "name": "bisoudec1.gfx",
+      "bytes": 4915380,
+      "sha256": "ada955d9072ccc79cf3ef7845999adf34054d9743bcdd21ef06224c8c91f8b04",
+      "compressedName": "bisoudec1.gfx.gz",
+      "compressedBytes": 971527
+    },
+    {
+      "name": "bisoudec2.gfx",
+      "bytes": 4300958,
+      "sha256": "9b90d28d2d6d6d7627120461618bc64be1dc55eb4f162350aa3f9c09add2fe26",
+      "compressedName": "bisoudec2.gfx.gz",
+      "compressedBytes": 1081041
+    },
+    {
+      "name": "bisoudec3.gfx",
+      "bytes": 7373068,
+      "sha256": "20369857c4e43a57e3d24207a30d8424f391e2f9058e97fd1ba61764185a353b",
+      "compressedName": "bisoudec3.gfx.gz",
+      "compressedBytes": 2977927
+    },
+    {
+      "name": "bisouenn.gfx",
+      "bytes": 1509566,
+      "sha256": "220d2744a0d704e0347f6a168c3535183530937a6406432f727fd0a518b14aee",
+      "compressedName": "bisouenn.gfx.gz",
+      "compressedBytes": 571736
+    },
+    {
+      "name": "bisoufond.gfx",
+      "bytes": 163346,
+      "sha256": "70d7774ee9e99431e2ed62ba2250f9e71b28c99595051641e166c950950db401",
+      "compressedName": "bisoufond.gfx.gz",
+      "compressedBytes": 47541
+    },
+    {
+      "name": "bisoufond3.gfx",
+      "bytes": 95024,
+      "sha256": "47e637d853c30b0479846593ad2fddd78e5472f0f72a9c6068ca111f754b5745",
+      "compressedName": "bisoufond3.gfx.gz",
+      "compressedBytes": 40040
+    },
+    {
+      "name": "bisourpg.gfx",
+      "bytes": 43616,
+      "sha256": "ca90f4dfaff43fbd4b2eeeb13e04d47e41f4810862b575f0e99a32b30f38f315",
+      "compressedName": "bisourpg.gfx.gz",
+      "compressedBytes": 22196
+    },
+    {
+      "name": "bisous1.lvl",
+      "bytes": 277660,
+      "sha256": "04ae4913563d7ea647f7de66b44087a5d9d4671385e3e9a9b9e0a98c57e4361e",
+      "compressedName": "bisous1.lvl.gz",
+      "compressedBytes": 7469
+    },
+    {
+      "name": "bisous2.lvl",
+      "bytes": 275080,
+      "sha256": "66e3491fa775c83f840bc98d8049ddb5cd15f56db69fd655d905c9c76b937248",
+      "compressedName": "bisous2.lvl.gz",
+      "compressedBytes": 1675
+    },
+    {
+      "name": "bisous3.lvl",
+      "bytes": 396436,
+      "sha256": "6d62dd476a8a6dbf75624ec1142a38886d6a034ae09b2793bb0ca480f87cf578",
+      "compressedName": "bisous3.lvl.gz",
+      "compressedBytes": 2860
+    },
+    {
+      "name": "blip.gfx",
+      "bytes": 202376,
+      "sha256": "ae60dd4ab44019163ccedf3c1b460dfbf2904c404deebdbe8ee5a0bf7d82b8ff",
+      "compressedName": "blip.gfx.gz",
+      "compressedBytes": 77982
+    },
+    {
+      "name": "blop.gfx",
+      "bytes": 233060,
+      "sha256": "2e356d5622d35cdf131188e049baea9d646c8d9d247f11bec2d60edb1ebb6986",
+      "compressedName": "blop.gfx.gz",
+      "compressedBytes": 83949
+    },
+    {
+      "name": "boss.sfx",
+      "bytes": 164450,
+      "sha256": "2f45fb42791ca78c3d71a3f9fb5cb8aa575fc01c276e07aed9b36c5ad26970f2",
+      "compressedName": "boss.sfx.gz",
+      "compressedBytes": 145643
+    },
+    {
+      "name": "boss.zik",
+      "bytes": 542966,
+      "sha256": "2c4a015e34841700360d4b923ae3fc1459ce45529f5cf335483352a01ad21906",
+      "compressedName": "boss.zik.gz",
+      "compressedBytes": 539594
+    },
+    {
+      "name": "bossrpg.gfx",
+      "bytes": 61908,
+      "sha256": "ddcc9b07cc20fe3562de31b62f6d4f063c82b0d8f07996efb93135e6f4bcb067",
+      "compressedName": "bossrpg.gfx.gz",
+      "compressedBytes": 30389
+    },
+    {
+      "name": "brief1.gfx",
+      "bytes": 581146,
+      "sha256": "e27b1f86ceb9872ba9a1f9f814ee6f071c03ad3ae04f9c1676c0e51ab6351f44",
+      "compressedName": "brief1.gfx.gz",
+      "compressedBytes": 102062
+    },
+    {
+      "name": "brief1_1.gfx",
+      "bytes": 576026,
+      "sha256": "ad887a28792cc721d112830023a53d18c64082299cf86ff0c4d7cd57bb3521fa",
+      "compressedName": "brief1_1.gfx.gz",
+      "compressedBytes": 87841
+    },
+    {
+      "name": "brief2.gfx",
+      "bytes": 581146,
+      "sha256": "41bf394f6e224b6d421b39153cb5dae1616278cf4c91319126690d27188e24c1",
+      "compressedName": "brief2.gfx.gz",
+      "compressedBytes": 65919
+    },
+    {
+      "name": "brief3.gfx",
+      "bytes": 581146,
+      "sha256": "604229e8ce9aae21ba96c71c9434bfefb827acf0dc77d09cd72fc70a4be3430b",
+      "compressedName": "brief3.gfx.gz",
+      "compressedBytes": 103578
+    },
+    {
+      "name": "brief3_1.gfx",
+      "bytes": 574746,
+      "sha256": "4a6499490d44e9285eba2c666a4b157be9b46b7c116d6880a22c6543675b1ca8",
+      "compressedName": "brief3_1.gfx.gz",
+      "compressedBytes": 152894
+    },
+    {
+      "name": "brief4.gfx",
+      "bytes": 581146,
+      "sha256": "98eb340950b428160081b223af791c6e43aa4f24680edccc145813eda30f0e18",
+      "compressedName": "brief4.gfx.gz",
+      "compressedBytes": 64727
+    },
+    {
+      "name": "brief5.gfx",
+      "bytes": 581146,
+      "sha256": "3aecb2640c4792931ec6d97dd4171fe264120336b40b1632e5aca4ea843eb878",
+      "compressedName": "brief5.gfx.gz",
+      "compressedBytes": 100117
+    },
+    {
+      "name": "brief6.gfx",
+      "bytes": 581146,
+      "sha256": "0ed7561cb7f7ef93d6bea4b8f862a08764b75a2b7a0a227520181aab6e26aa25",
+      "compressedName": "brief6.gfx.gz",
+      "compressedBytes": 63029
+    },
+    {
+      "name": "brief6_1.gfx",
+      "bytes": 576026,
+      "sha256": "758e3741dc8f35bf7b900ead37557562503dac3ee4cc0bcc6e22f3f3242ff814",
+      "compressedName": "brief6_1.gfx.gz",
+      "compressedBytes": 94991
+    },
+    {
+      "name": "brief7.gfx",
+      "bytes": 581146,
+      "sha256": "d97b08b3e31d7acdf908bf33d8b7df95f948716692b60be1c8d1e4292654de57",
+      "compressedName": "brief7.gfx.gz",
+      "compressedBytes": 67999
+    },
+    {
+      "name": "cool.lft",
+      "bytes": 17982,
+      "sha256": "69820b93e6a36d6d5c809148153a10ada710c505d1410af024cfa2c195286243",
+      "compressedName": "cool.lft.gz",
+      "compressedBytes": 3354
+    },
+    {
+      "name": "credits.gfx",
+      "bytes": 959520,
+      "sha256": "362233411c3ebabd55737c34224ba8c2da5dfd0ebd94747d2c12f4b48292a606",
+      "compressedName": "credits.gfx.gz",
+      "compressedBytes": 440014
+    },
+    {
+      "name": "credits.mbk",
+      "bytes": 36,
+      "sha256": "7865f2ce9fb6b5f7259d105748cbbeb95aae52a066a971b5251807c7d0e4d7ea",
+      "compressedName": "credits.mbk.gz",
+      "compressedBytes": 47
+    },
+    {
+      "name": "credits.zik",
+      "bytes": 1157662,
+      "sha256": "58d40af5193f281e58edb9ba204854318dbeb66b22d6b8d60725d1814fe8f4ad",
+      "compressedName": "credits.zik.gz",
+      "compressedBytes": 1149093
+    },
+    {
+      "name": "dork.lvl",
+      "bytes": 156244,
+      "sha256": "7185b0df2316c05dd2d8138886f5f32a5932dac19e59e6b984ec58f7d54f7efc",
+      "compressedName": "dork.lvl.gz",
+      "compressedBytes": 2735
+    },
+    {
+      "name": "dork.mbk",
+      "bytes": 17,
+      "sha256": "8148579b35927a268ba222d8dce764d441f2284cce8a7438ba08bd8efcce1688",
+      "compressedName": "dork.mbk.gz",
+      "compressedBytes": 37
+    },
+    {
+      "name": "dork.sfx",
+      "bytes": 45808,
+      "sha256": "8416efa3068c0f5f248302dffd17c5d6a85fab0dbb175ce15931a304842657f0",
+      "compressedName": "dork.sfx.gz",
+      "compressedBytes": 27057
+    },
+    {
+      "name": "dork.zik",
+      "bytes": 1534424,
+      "sha256": "f29bd9b1a2f121eabde1fc56ec9c03fb448ed768fcc5536e6e83357f554e406e",
+      "compressedName": "dork.zik.gz",
+      "compressedBytes": 1526291
+    },
+    {
+      "name": "dorkfonda.gfx",
+      "bytes": 1457530,
+      "sha256": "d687669741a24fc18774e4f5008e3de1957e45cdb7ef2f64cc39b65e5101ce37",
+      "compressedName": "dorkfonda.gfx.gz",
+      "compressedBytes": 570843
+    },
+    {
+      "name": "end.cin",
+      "bytes": 1446,
+      "sha256": "963c685c90074282e9dd434ca09058625b8b7b3cf9b819cb434c436c9ba192d7",
+      "compressedName": "end.cin.gz",
+      "compressedBytes": 436
+    },
+    {
+      "name": "end.gfx",
+      "bytes": 2329442,
+      "sha256": "7eaab3fa51482da70fb586aa4b6259494d1f2b4c40a1dd06742f344f7867cb0a",
+      "compressedName": "end.gfx.gz",
+      "compressedBytes": 828822
+    },
+    {
+      "name": "end.mbk",
+      "bytes": 18,
+      "sha256": "c4896273fed76665627cb8ba0477c0b9d309069197849f740781e77f8ee73c21",
+      "compressedName": "end.mbk.gz",
+      "compressedBytes": 38
+    },
+    {
+      "name": "endlevel.zik",
+      "bytes": 79461,
+      "sha256": "cf35a0f070fdd0e0a267ff025c96da7d8f3ebe65fcee98e6fbd51d5b20289d48",
+      "compressedName": "endlevel.zik.gz",
+      "compressedBytes": 78613
+    },
+    {
+      "name": "finalboss.lvl",
+      "bytes": 123880,
+      "sha256": "f7f2fbc1b9ae61766650b5bc4dc12fd1d0952118bc34d97208487ea35b3754bb",
+      "compressedName": "finalboss.lvl.gz",
+      "compressedBytes": 880
+    },
+    {
+      "name": "finalboss.mbk",
+      "bytes": 18,
+      "sha256": "7edbb2771bbbb1c296b3de08e575e7c58df09d7c8e4076a80137e1a3ce7002db",
+      "compressedName": "finalboss.mbk.gz",
+      "compressedBytes": 38
+    },
+    {
+      "name": "finalboss.rpg",
+      "bytes": 397,
+      "sha256": "56cb65b2ec272d2ce77225499e7dc252ec7b6fdcb6e61d8c24197900b38f379b",
+      "compressedName": "finalboss.rpg.gz",
+      "compressedBytes": 174
+    },
+    {
+      "name": "finalbossenn.gfx",
+      "bytes": 276688,
+      "sha256": "a619de98d3ff983f299f4fd98e10f1bc9c0892eb281139469bcd19c950e0f032",
+      "compressedName": "finalbossenn.gfx.gz",
+      "compressedBytes": 122409
+    },
+    {
+      "name": "finalbossfond.gfx",
+      "bytes": 1843270,
+      "sha256": "fbb798be8e8950f398b9e0a41be9fdd54cdbb09f636e57ad3618ffc10571936e",
+      "compressedName": "finalbossfond.gfx.gz",
+      "compressedBytes": 398780
+    },
+    {
+      "name": "finalbossfonda.gfx",
+      "bytes": 287816,
+      "sha256": "7e85e24345b9a274c8c5535430be32b575b4f92691f911e626a69c0fdcd31c27",
+      "compressedName": "finalbossfonda.gfx.gz",
+      "compressedBytes": 123783
+    },
+    {
+      "name": "finalbossrpg.gfx",
+      "bytes": 13546,
+      "sha256": "af675a3817778ac92ea196a09e4f65bc6c8a51d16d73650d11f18969e0e6ed7c",
+      "compressedName": "finalbossrpg.gfx.gz",
+      "compressedBytes": 8023
+    },
+    {
+      "name": "gameover.zik",
+      "bytes": 97801,
+      "sha256": "68366f6959066575ccf4e5183470398b31c76c7737c63fdc5bbd251fd903eb26",
+      "compressedName": "gameover.zik.gz",
+      "compressedBytes": 89010
+    },
+    {
+      "name": "hard.zik",
+      "bytes": 23648,
+      "sha256": "f2db5c43c5e2c7068fb3470b0a64a5674d38fcea1273062b4d63e820f16580a8",
+      "compressedName": "hard.zik.gz",
+      "compressedBytes": 22986
+    },
+    {
+      "name": "inter.gfx",
+      "bytes": 1217186,
+      "sha256": "c6b7f90342adf8f62ddb4f2a8df72d838974d22e43e2a01e8e1ee2be0f8a36b5",
+      "compressedName": "inter.gfx.gz",
+      "compressedBytes": 218063
+    },
+    {
+      "name": "inter.mbk",
+      "bytes": 61,
+      "sha256": "9d6cc94b4cf5660ed2f0313c8367e1770064e6fe9887e92932a6f263d85bf188",
+      "compressedName": "inter.mbk.gz",
+      "compressedBytes": 60
+    },
+    {
+      "name": "interl.mbk",
+      "bytes": 19,
+      "sha256": "509e9f4868d9fea93bd8fe8fa12d01f82f496c9f47072d8b99866df7eddfe082",
+      "compressedName": "interl.mbk.gz",
+      "compressedBytes": 39
+    },
+    {
+      "name": "intro.cin",
+      "bytes": 3672,
+      "sha256": "1e97f4f28f6793c15f8b742d2e4ece820eeae2002167d9a0347d777c1821bfae",
+      "compressedName": "intro.cin.gz",
+      "compressedBytes": 731
+    },
+    {
+      "name": "intro.gfx",
+      "bytes": 2825460,
+      "sha256": "d47dffa9b486dbd5c3dbde7bc72fbda2a305ee75d26b6fe77429ea58e5ba3ce9",
+      "compressedName": "intro.gfx.gz",
+      "compressedBytes": 506226
+    },
+    {
+      "name": "lem.lvl",
+      "bytes": 123820,
+      "sha256": "dc60d3a918b44ead31f876fbde87cb33617a5238ec6290c9add0c29a17a36cb8",
+      "compressedName": "lem.lvl.gz",
+      "compressedBytes": 1583
+    },
+    {
+      "name": "lem.mbk",
+      "bytes": 16,
+      "sha256": "132b23080b3cd94160a5324eba9f6d3ce9406d4ae4b9f6a72a53e0a999a384c9",
+      "compressedName": "lem.mbk.gz",
+      "compressedBytes": 36
+    },
+    {
+      "name": "lem.rpg",
+      "bytes": 243,
+      "sha256": "c74fdf9e04f5fac14140f94d29bd6e2e011145e7f76a063215a12125e6abcc13",
+      "compressedName": "lem.rpg.gz",
+      "compressedBytes": 167
+    },
+    {
+      "name": "lem.sfx",
+      "bytes": 78744,
+      "sha256": "8c0281414dbc2e0629581b8a6c1a8a47ee9ffd3f620f1a23008934e38900b5ec",
+      "compressedName": "lem.sfx.gz",
+      "compressedBytes": 71722
+    },
+    {
+      "name": "lem.zik",
+      "bytes": 1176623,
+      "sha256": "8f0bc07e3c93ac6afb7d80edc89b4ba233f0838863b238e778f3bfab86bd0fb3",
+      "compressedName": "lem.zik.gz",
+      "compressedBytes": 1169594
+    },
+    {
+      "name": "lemdec.gfx",
+      "bytes": 1843270,
+      "sha256": "2a705b5e98b334224010d133302c5f54b4a17175dd8fb62dbde3766f25489eb1",
+      "compressedName": "lemdec.gfx.gz",
+      "compressedBytes": 917553
+    },
+    {
+      "name": "lemenn.gfx",
+      "bytes": 128260,
+      "sha256": "f611d3e006f67ad35f6fc53f80b79360ff70a8cee4b2179da5f9f36c550b9902",
+      "compressedName": "lemenn.gfx.gz",
+      "compressedBytes": 40252
+    },
+    {
+      "name": "lemfond.gfx",
+      "bytes": 1017764,
+      "sha256": "e07e3b828b6a4c5d78a8093658bbd5effefaaffcae1b171f859e4db68fbe8691",
+      "compressedName": "lemfond.gfx.gz",
+      "compressedBytes": 385060
+    },
+    {
+      "name": "menu.lft",
+      "bytes": 17982,
+      "sha256": "69820b93e6a36d6d5c809148153a10ada710c505d1410af024cfa2c195286243",
+      "compressedName": "menu.lft.gz",
+      "compressedBytes": 3354
+    },
+    {
+      "name": "menus.lft",
+      "bytes": 17732,
+      "sha256": "91f52a85886e11fc0cc8c37cc04fd07c29c6d6e321270f410cdb337095c7a7d8",
+      "compressedName": "menus.lft.gz",
+      "compressedBytes": 3447
+    },
+    {
+      "name": "misc.gfx",
+      "bytes": 52922,
+      "sha256": "c95ab78ab96623f7b37b87a4a825561316f0f74919040cb7e9d8993c4589bbb2",
+      "compressedName": "misc.gfx.gz",
+      "compressedBytes": 20406
+    },
+    {
+      "name": "misc.sfx",
+      "bytes": 506362,
+      "sha256": "dcf502e996fb3bac6585f6c1c6c3961078fc6394c34642f171df86d80fa603d2",
+      "compressedName": "misc.sfx.gz",
+      "compressedBytes": 374366
+    },
+    {
+      "name": "orgue.zik",
+      "bytes": 54580,
+      "sha256": "6df32d143b1c4f0926114ec0850bc91594108aded61d2a9cb9dda3369f6f743c",
+      "compressedName": "orgue.zik.gz",
+      "compressedBytes": 52246
+    },
+    {
+      "name": "pokeenn.gfx",
+      "bytes": 717860,
+      "sha256": "07c8700f4c033739a16862d24855a2356651cb81d8d71b09f2760daf221c73f7",
+      "compressedName": "pokeenn.gfx.gz",
+      "compressedBytes": 255693
+    },
+    {
+      "name": "pokefond.gfx",
+      "bytes": 2457692,
+      "sha256": "e2a43d7c78087eb3d448a2bba610fa5413993fc23913b25f0d77e2d9704f8511",
+      "compressedName": "pokefond.gfx.gz",
+      "compressedBytes": 882444
+    },
+    {
+      "name": "rpg.lft",
+      "bytes": 17680,
+      "sha256": "5387657cf9b8ff2002bd9334828a033c60364ff84403682d35a943de2def12aa",
+      "compressedName": "rpg.lft.gz",
+      "compressedBytes": 3098
+    },
+    {
+      "name": "rpg_bb.gfx",
+      "bytes": 178232,
+      "sha256": "ab297e795797919a4ec7da5ac1a05af2621d3c71532346695c667de2e13e58d2",
+      "compressedName": "rpg_bb.gfx.gz",
+      "compressedBytes": 64619
+    },
+    {
+      "name": "scorei.lft",
+      "bytes": 3092,
+      "sha256": "70f73fa9ba440247150c5a3a36a4cab14d253a423139372cda7f58e449d2d169",
+      "compressedName": "scorei.lft.gz",
+      "compressedBytes": 609
+    },
+    {
+      "name": "scoreo.lft",
+      "bytes": 3098,
+      "sha256": "b439c0de23f075205d944dc0e90b6d9e6f583450ef12eb7b2fbdb5a746e8001a",
+      "compressedName": "scoreo.lft.gz",
+      "compressedBytes": 611
+    },
+    {
+      "name": "smurf.sfx",
+      "bytes": 974676,
+      "sha256": "103cc8b61ed716eb2bf1a5db41fecce4fedf4412da8adc4f6b2359cf301878aa",
+      "compressedName": "smurf.sfx.gz",
+      "compressedBytes": 855411
+    },
+    {
+      "name": "snork.mbk",
+      "bytes": 34,
+      "sha256": "76153b25c45e5693747b9794478f0fbf7ad0d86af42226cad6280cd0186b9b52",
+      "compressedName": "snork.mbk.gz",
+      "compressedBytes": 45
+    },
+    {
+      "name": "snork.rpg",
+      "bytes": 619,
+      "sha256": "e3af39219e8da7e07f2382b4d3f82c91c8eca9ec26b0c12a53503be3817ce0d5",
+      "compressedName": "snork.rpg.gz",
+      "compressedBytes": 234
+    },
+    {
+      "name": "snork.sfx",
+      "bytes": 410318,
+      "sha256": "5e8eb700757ef3b4d6b092ad442aadc17d9d659fef0c784aa5153cdd55e1879c",
+      "compressedName": "snork.sfx.gz",
+      "compressedBytes": 361163
+    },
+    {
+      "name": "snork.zik",
+      "bytes": 3002140,
+      "sha256": "a73cc849a5e74bdc83c09a6745d198d3ef842c47e5553e4b0719f7526a49c62a",
+      "compressedName": "snork.zik.gz",
+      "compressedBytes": 2983433
+    },
+    {
+      "name": "snorkdec.gfx",
+      "bytes": 2457692,
+      "sha256": "900bf70654fdcbf4aec46cfa9e8b58e018d0b6bb1a5cc5906b8f3b1bbfc7bcc6",
+      "compressedName": "snorkdec.gfx.gz",
+      "compressedBytes": 696667
+    },
+    {
+      "name": "snorkenn2.gfx",
+      "bytes": 989506,
+      "sha256": "fc5b90f7787320164bb7f55f0bf794e77d82d01a129503bb8530e8affe89ca06",
+      "compressedName": "snorkenn2.gfx.gz",
+      "compressedBytes": 225929
+    },
+    {
+      "name": "snorkfond1.gfx",
+      "bytes": 8602872,
+      "sha256": "f45be8172db9b674aac5f51174f7f2e86243a92f1b49e74a35c9e9d850441be0",
+      "compressedName": "snorkfond1.gfx.gz",
+      "compressedBytes": 1675824
+    },
+    {
+      "name": "snorkfond2.gfx",
+      "bytes": 3686536,
+      "sha256": "6eb8ad49a19e61b776980085477b4d05e9bf6a1548f6e194054c95934a316a3d",
+      "compressedName": "snorkfond2.gfx.gz",
+      "compressedBytes": 1160954
+    },
+    {
+      "name": "snorkfonda.gfx",
+      "bytes": 681852,
+      "sha256": "337de369f025ca40bc829b495df9cc587ac82495450c173a458822e398912e63",
+      "compressedName": "snorkfonda.gfx.gz",
+      "compressedBytes": 130250
+    },
+    {
+      "name": "snorkniv.lvl",
+      "bytes": 428501,
+      "sha256": "67f33ee39afb381097031f8bb6b9d5a14da3a498327d161272df4882f2736810",
+      "compressedName": "snorkniv.lvl.gz",
+      "compressedBytes": 7933
+    },
+    {
+      "name": "snorkniv2.lvl",
+      "bytes": 307565,
+      "sha256": "bc2eb099e66d859b1c966945ebcf6e7e7b3f469fcc198728cce9af8cc3f32370",
+      "compressedName": "snorkniv2.lvl.gz",
+      "compressedBytes": 7673
+    },
+    {
+      "name": "snorkrpg.gfx",
+      "bytes": 11466,
+      "sha256": "ed027c1d4363b96e6f85c8cde0a9a65a093cb46a7f7733be3d17b53345d2d8a5",
+      "compressedName": "snorkrpg.gfx.gz",
+      "compressedBytes": 4789
+    },
+    {
+      "name": "snuf.mbk",
+      "bytes": 53,
+      "sha256": "02cc43573eb688b0a2acc7cbab0d1be82ead20542478ddab500b0b3dc686aa0b",
+      "compressedName": "snuf.mbk.gz",
+      "compressedBytes": 51
+    },
+    {
+      "name": "snuf.mp3",
+      "bytes": 2386954,
+      "sha256": "ab6338942415a96fcbe363a7d9ba536cf5f21aa486bfbaa05d94882c3425b5a1",
+      "compressedName": "snuf.mp3.gz",
+      "compressedBytes": 2353291
+    },
+    {
+      "name": "snuf.zik",
+      "bytes": 2366559,
+      "sha256": "752a029f376d4058c9d70d2178e9252ff8e532b220f703fea10269488cd306cb",
+      "compressedName": "snuf.zik.gz",
+      "compressedBytes": 2355413
+    },
+    {
+      "name": "snuf1.lvl",
+      "bytes": 400936,
+      "sha256": "a85d2f4409bc2ddf145a25d92d5971c74c48747a4faaa2e3c46d2b309088e0fc",
+      "compressedName": "snuf1.lvl.gz",
+      "compressedBytes": 5173
+    },
+    {
+      "name": "snuf2.lvl",
+      "bytes": 401776,
+      "sha256": "3695656395e2811811383db2610229040696ef20143b3a6e3f30197aa94fd1f4",
+      "compressedName": "snuf2.lvl.gz",
+      "compressedBytes": 10016
+    },
+    {
+      "name": "snufdec1.gfx",
+      "bytes": 6144224,
+      "sha256": "8686a2ae5cf54ff33ee05b6bf57b647c786b013c5426e855cbc1a7f0017fa6cd",
+      "compressedName": "snufdec1.gfx.gz",
+      "compressedBytes": 1666859
+    },
+    {
+      "name": "snufdec2.gfx",
+      "bytes": 6758646,
+      "sha256": "ec2c5fc764199d271b572886d0d108027380ccac9a422a7a1136e4ce583a70e8",
+      "compressedName": "snufdec2.gfx.gz",
+      "compressedBytes": 1419369
+    },
+    {
+      "name": "snufenn.gfx",
+      "bytes": 667052,
+      "sha256": "82e32476f08b3566bbc21ddc42c736e5d56374cbc8c5b5326bf9f9afa51e1f9b",
+      "compressedName": "snufenn.gfx.gz",
+      "compressedBytes": 249932
+    },
+    {
+      "name": "snuff.rpg",
+      "bytes": 836,
+      "sha256": "d8ebc0b1b2b13ec2f39c39f8941a00fe88b3f213d94e87d32a176f559614d23e",
+      "compressedName": "snuff.rpg.gz",
+      "compressedBytes": 267
+    },
+    {
+      "name": "snufpplan1.gfx",
+      "bytes": 100088,
+      "sha256": "ad872d8f5bc5b3f7e8a8bebb1161ee1088777217e8437a75e158da5103391ccf",
+      "compressedName": "snufpplan1.gfx.gz",
+      "compressedBytes": 46072
+    },
+    {
+      "name": "snufrpg.gfx",
+      "bytes": 12772,
+      "sha256": "bde5ed32e34f4a967c629416931933928c29a0260b490af0373a13628aaeb6ef",
+      "compressedName": "snufrpg.gfx.gz",
+      "compressedBytes": 5993
+    },
+    {
+      "name": "suspens.zik",
+      "bytes": 49890,
+      "sha256": "86a2522ff290d1009cb8244bfae9ced0fcc926fdd798b22b8a0675c65db74679",
+      "compressedName": "suspens.zik.gz",
+      "compressedBytes": 48441
+    },
+    {
+      "name": "tambour.zik",
+      "bytes": 22568,
+      "sha256": "e39490783aba8031793ccb249911bc92b070ab6fd8d4e3f670bbc1ddb18ec6a2",
+      "compressedName": "tambour.zik.gz",
+      "compressedBytes": 20459
+    },
+    {
+      "name": "theend.gfx",
+      "bytes": 1014776,
+      "sha256": "3451ff9c1d210f00679ac720dcb00a80b751b397d73fd28a7961ca4e75caa080",
+      "compressedName": "theend.gfx.gz",
+      "compressedBytes": 269089
+    },
+    {
+      "name": "theme.mp3",
+      "bytes": 2261090,
+      "sha256": "98c6962ea0303f6e7407751c459ed9d733863b575d197b5f51496fb2b72b375b",
+      "compressedName": "theme.mp3.gz",
+      "compressedBytes": 2252557
+    },
+    {
+      "name": "theme.zik",
+      "bytes": 2179218,
+      "sha256": "8915f33471612cc265f9651e341e926dce2ed4ef6404dbbb2e2e2408253f91c3",
+      "compressedName": "theme.zik.gz",
+      "compressedBytes": 2168835
+    },
+    {
+      "name": "uk.dat",
+      "bytes": 5422,
+      "sha256": "f199f6c45b80f2020bdfc581d9880ef120a258177efb2ac9c7b1611f9f3db28c",
+      "compressedName": "uk.dat.gz",
+      "compressedBytes": 2864
+    },
+    {
+      "name": "vidboss.zik",
+      "bytes": 3420524,
+      "sha256": "7edf08e268450711a7e12bb896efefecf22908c784fcba6640f80fb086f13a07",
+      "compressedName": "vidboss.zik.gz",
+      "compressedBytes": 3371364
+    },
+    {
+      "name": "video.lvl",
+      "bytes": 558136,
+      "sha256": "4c167c527bee1ec566f470d022bc335463d4305653e7a08b2af2cf65dd22fff6",
+      "compressedName": "video.lvl.gz",
+      "compressedBytes": 8735
+    },
+    {
+      "name": "video.mbk",
+      "bytes": 34,
+      "sha256": "c746faea38f2bc2c0d2195c22d8d155a9f13e515c317aae607cb4bcb21fb2776",
+      "compressedName": "video.mbk.gz",
+      "compressedBytes": 45
+    },
+    {
+      "name": "video.rpg",
+      "bytes": 1065,
+      "sha256": "2d4d0b4c871bfb536b9fd2f3b2c123c9ab297ee0455420a764cd45b3865a5574",
+      "compressedName": "video.rpg.gz",
+      "compressedBytes": 361
+    },
+    {
+      "name": "video.sfx",
+      "bytes": 834172,
+      "sha256": "b7809df9bd8813b804028d5adf5c965f100607f6794b47d63cd4a1d7159e7cd5",
+      "compressedName": "video.sfx.gz",
+      "compressedBytes": 738511
+    },
+    {
+      "name": "video.zik",
+      "bytes": 1541803,
+      "sha256": "b27f557294815cfb9ddaa779146594217cd47162267d09071934068d44cb0e05",
+      "compressedName": "video.zik.gz",
+      "compressedBytes": 1526507
+    },
+    {
+      "name": "videoboss.lvl",
+      "bytes": 122500,
+      "sha256": "18b458075516138d4af7b5de2ce3d4cc055c7ed335e4fda6e48b4800266b4876",
+      "compressedName": "videoboss.lvl.gz",
+      "compressedBytes": 1197
+    },
+    {
+      "name": "videoboss.mbk",
+      "bytes": 39,
+      "sha256": "4060fa1645d353747c0f70e43c2711faf5cd98289fc32a06bfc95c83106946b5",
+      "compressedName": "videoboss.mbk.gz",
+      "compressedBytes": 49
+    },
+    {
+      "name": "videoboss.rpg",
+      "bytes": 888,
+      "sha256": "cbb92afff07f74db4f7c9639de76b3019372709fef6d147a74cf608686dd24c7",
+      "compressedName": "videoboss.rpg.gz",
+      "compressedBytes": 264
+    },
+    {
+      "name": "videobossenn.gfx",
+      "bytes": 1113248,
+      "sha256": "3edb28d4b09fb87cea33aaf59053786f93d3be4a94bf3c82bc3160d4bf22f4e3",
+      "compressedName": "videobossenn.gfx.gz",
+      "compressedBytes": 393050
+    },
+    {
+      "name": "videoenn.gfx",
+      "bytes": 1900556,
+      "sha256": "5bebd4250eb56322242d875c265c8829c29aa9c9c196fa2548b77380ba9b5da1",
+      "compressedName": "videoenn.gfx.gz",
+      "compressedBytes": 653210
+    },
+    {
+      "name": "videofond.gfx",
+      "bytes": 11059600,
+      "sha256": "f5b0f28ebbaf9ae44f2fc7b848219897b84dca9734558be2404d7ebd5aa67f9b",
+      "compressedName": "videofond.gfx.gz",
+      "compressedBytes": 2399835
+    },
+    {
+      "name": "videofonda.gfx",
+      "bytes": 548734,
+      "sha256": "7bc58e59981ab88334e59421a28c508c3d69a2d06c6cbe0411f3a0506d4384c3",
+      "compressedName": "videofonda.gfx.gz",
+      "compressedBytes": 192183
+    },
+    {
+      "name": "videofondaboss.gfx",
+      "bytes": 685332,
+      "sha256": "2a26c77dcd5ab8053c56d36d52b858ba1320eec0505e50ad1345f30820a9b4ea",
+      "compressedName": "videofondaboss.gfx.gz",
+      "compressedBytes": 104769
+    },
+    {
+      "name": "videofondboss.gfx",
+      "bytes": 2385470,
+      "sha256": "4bef213eb144e79ba42efed2a5c1dc1a10addd73e6b09dbe95a13ce674080082",
+      "compressedName": "videofondboss.gfx.gz",
+      "compressedBytes": 590673
+    },
+    {
+      "name": "videorpg.gfx",
+      "bytes": 34136,
+      "sha256": "22bbb819c2e6bc529af1d6eb614fb617c904efe7d15d584f3125a6c2e07445cb",
+      "compressedName": "videorpg.gfx.gz",
+      "compressedBytes": 17801
+    }
+  ]
+}

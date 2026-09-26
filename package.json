@@ -1,0 +1,11 @@
+{
+  "name": "blip-blop-browser",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "python3 scripts/serve.py",
+    "test": "node --test tests/*.test.js",
+    "build": "node scripts/build.mjs"
+  }
+}
