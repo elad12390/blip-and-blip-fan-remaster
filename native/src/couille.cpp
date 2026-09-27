@@ -1224,6 +1224,8 @@ void Couille::estTouche(int degats)
 	if (invincible > 0 || etat == ETAT_MEURE || bb_god)
 		return;
 
+	degats = bb_scale_damage(degats);
+	if (degats <= 0) { invincible = bb_hurt_invincibility(); a_mal = 100; return; }
 	pv -= degats;
 	perfect = false;
 	/*
@@ -1246,7 +1248,7 @@ void Couille::estTouche(int degats)
 		col_on = false;
 		no_scroll1 = true;
 	} else {
-		invincible = 200;
+		invincible = bb_hurt_invincibility();
 		a_mal = 100;
 	}
 }

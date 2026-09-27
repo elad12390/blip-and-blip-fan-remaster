@@ -17,7 +17,21 @@ extern Game game;
 int bb_mode=0, bb_part=0, bb_start_part=0, bb_player=0, bb_players=1;
 int bb_armor=0, bb_firepower=0, bb_supply=0, bb_difficulty=1;
 static int spawnAccumulator=0;
-int bb_enemy_percent(){static const int percents[]={60,100,150,200};return percents[std::clamp(bb_difficulty,0,3)];}
+// Safe time after a hit (original 200 steps), and whether damage is halved.
+int bb_hurt_invincibility(){static const int steps[]={400,300,240,200};return steps[std::clamp(bb_difficulty,0,3)];}
+int bb_scale_damage(int damage){
+    static int remainder=0;
+    if(bb_difficulty!=0||damage<=0)return damage;
+    remainder+=damage;const int applied=remainder/2;remainder%=2;
+    return applied;
+}
+bool bb_spawner_crowded(){
+    static const int caps[]={5,8,12,16};
+    int alive=0;
+    for(auto& e:list_ennemis)if(e->count() && e->pv>0 && e->pv<=1500)alive++;
+    return alive>=caps[std::clamp(bb_difficulty,0,3)];
+}
+int bb_enemy_percent(){static const int percents[]={35,80,120,170};return percents[std::clamp(bb_difficulty,0,3)];}
 int bb_spawn_copies(){
     // Starts at half so Easy keeps the first spawn of a stage and Hard's
     // extra copies are spread evenly rather than bunched at the start.

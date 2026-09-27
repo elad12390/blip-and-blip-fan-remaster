@@ -3,17 +3,22 @@
 class Couille;
 extern int bb_mode, bb_part, bb_start_part, bb_player, bb_players;
 extern int bb_armor, bb_firepower, bb_supply;
-// 0 Easy, 1 Normal (original), 2 Hard, 3 Insane. Scales how many ordinary
+// 0 Easy, 1 Normal, 2 Hard, 3 Insane (all somewhat gentler than the original). Scales how many ordinary
 // enemies a stage spawns; bosses and scripted enemies are never touched.
 extern int bb_difficulty;
 // Console cheats: god mode ignores damage; any cheat marks the run.
 extern bool bb_god, bb_cheated;
 // Percent of the original ordinary-enemy count for the current difficulty.
 int bb_enemy_percent();
+int bb_hurt_invincibility();
+// Easy halves damage taken (every other point, so 1-damage hits alternate).
+int bb_scale_damage(int damage);
 // How many copies of one authored ordinary spawn to create (0..n), using a
 // per-stage accumulator so the average matches the percentage exactly.
 int bb_spawn_copies();
 void bb_reset_spawn_accumulator();
+// Spawners pause while this many ordinary enemies are alive (per difficulty).
+bool bb_spawner_crowded();
 extern bool bb_running, bb_paused, bb_game_over, bb_completed, bb_in_game;
 int bb_input(int player, int bit);
 int bb_max_hp();

@@ -34,6 +34,13 @@ void GenEnnemi::update()
 	if (game_flag[FLAG_GEN_OFF] != 0)
 		return;
 
+	// Never flood the screen: wait (without using up capacity) while crowded.
+	if (bb_spawner_crowded()) {
+		if (t > periode - 20) t = periode - 20;
+		if (x < offset - 100) a_detruire = true;
+		return;
+	}
+
 	t += 1;
 	t %= periode;
 
