@@ -1471,6 +1471,25 @@ void Game::updateLock() {
         (cond_end_lock == 3 && game_flag[flag_end_lock] >= val_end_lock)) {
         scroll_locked = false;
         go_.Come();
+        cleared_steps_ = 0;
+        return;
+    }
+
+    // A fight that waits on a script counter (for example a number of kills)
+    // must never hang: once every enemy is dead and nothing can spawn, count a
+    // few seconds, then end the level here or release the lock.
+    bool enemiesLeft = !list_gen_ennemis.empty() || rpg_to_play != -1;
+    for (auto& e : list_ennemis)
+        if (e->count() && e->pv > 0) { enemiesLeft = true; break; }
+    if (enemiesLeft || game_flag[FLAG_TIMER] > 0) { cleared_steps_ = 0; return; }
+    if (++cleared_steps_ < 900) return;  // ~10 s of nothing left alive
+    cleared_steps_ = 0;
+    if (progressOffset() >= vic_x) {
+        game_flag[vic_flag1] = vic_val1;
+        game_flag[vic_flag2] = vic_val2;
+    } else {
+        scroll_locked = false;
+        go_.Come();
     }
 }
 

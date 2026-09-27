@@ -37,6 +37,10 @@ void GenEnnemiTMP::update()
 		return;
 	}
 
+	// Screen cleared: bring the next enemy in now instead of making the
+	// player wait out the spawn timer.
+	if (bb_screen_clear() && t < periode - 1) t = periode - 1;
+
 	t += 1;
 	t %= periode;
 

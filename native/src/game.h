@@ -109,6 +109,7 @@ public:
 protected:
 
         GoArrow go_;
+        int cleared_steps_ = 0;
         int last_x_go_;
 
 	bool	show_fps;

@@ -37,7 +37,9 @@ void EventGenEnnemi::doEvent()
 	gen->sens = sens;
 	// Spawners emit proportionally more (or fewer) enemies, faster (or slower).
 	const int percent = bb_enemy_percent();
-	gen->periode = std::max(12, periode * 100 / percent);
+	// Harder difficulties spawn faster; easier ones only spawn fewer, never
+	// slower (a slow last spawn looked like a fight that would not end).
+	gen->periode = percent > 100 ? std::max(12, periode * 100 / percent) : periode;
 	gen->capacite = std::max(1, (capacite * percent + 50) / 100);
 
 	list_gen_ennemis.emplace_back(gen);

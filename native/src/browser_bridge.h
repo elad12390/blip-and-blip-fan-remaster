@@ -19,6 +19,11 @@ int bb_spawn_copies();
 void bb_reset_spawn_accumulator();
 // Spawners pause while this many ordinary enemies are alive (per difficulty).
 bool bb_spawner_crowded();
+// No living counted enemy inside the play window.
+bool bb_screen_clear();
+// Spawn position for a generator: its own spot, or pushed clear of a hero
+// standing on it (the original silently skipped the spawn).
+int bb_spawn_x(int x, int y);
 extern bool bb_running, bb_paused, bb_game_over, bb_completed, bb_in_game;
 int bb_input(int player, int bit);
 int bb_max_hp();

@@ -16,6 +16,10 @@ public:
 	EnnemiSmurfCigogne();
 
 	virtual void update();
+
+	// Scenery that flies off after the fight: it cannot be shot, so it never
+	// counts as an enemy still alive.
+	virtual bool count() { return false; }
 };
 
 #endif

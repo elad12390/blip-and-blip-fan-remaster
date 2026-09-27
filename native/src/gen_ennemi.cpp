@@ -41,42 +41,30 @@ void GenEnnemi::update()
 		return;
 	}
 
+	// Screen cleared: bring the next enemy in now instead of making the
+	// player wait out the spawn timer.
+	if (bb_screen_clear() && t < periode - 1) t = periode - 1;
+
 	t += 1;
 	t %= periode;
 
 	if (t == 0) {
-		Sprite *	s;
-		bool		ok = true;
+		EventEnnemi	e;
 
-		for (Couille* s : list_joueurs) {
-			ok = (s->x < x - 100 || s->x > x + 100 || s->y < y - 100 || s->y > y + 100);
-		}
-
-		if (ok) {
-			EventEnnemi	e;
-
-			e.id_ennemi = id_ennemi;
-			e.sens = sens;
-			e.x = x;
-			e.y = y;
-			{
+		e.id_ennemi = id_ennemi;
+		e.sens = sens;
+		e.x = bb_spawn_x(x, y);
+		e.y = y;
+		{
 			// Generator rate/capacity already carry the difficulty.
 			const int saved = bb_difficulty; bb_difficulty = 1;
 			e.doEvent();
 			bb_difficulty = saved;
-			}
 		}
 
-		// A spawn blocked by a nearby hero is retried shortly instead of
-		// being lost: scripted fights count these kills (Smurf Village II's
-		// boss needs five), so a lost spawn made the stage unwinnable.
-		if (ok) {
-			capacite -= 1;
-			if (capacite <= 0)
-				a_detruire = true;
-		} else {
-			t = periode > 30 ? periode - 30 : 0;
-		}
+		capacite -= 1;
+		if (capacite <= 0)
+			a_detruire = true;
 	}
 
 	if (x < offset - 100)

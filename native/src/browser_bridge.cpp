@@ -25,6 +25,22 @@ int bb_scale_damage(int damage){
     remainder+=damage;const int applied=remainder/2;remainder%=2;
     return applied;
 }
+bool bb_screen_clear(){
+    for(auto& e:list_ennemis)
+        if(e->count() && e->pv>0 && e->x>offset-40 && e->x<offset+scr_w+40)return false;
+    return true;
+}
+int bb_spawn_x(int x,int y){
+    for(int attempt=0;attempt<2;attempt++){
+        bool blocked=false;int heroX=0;
+        for(auto* p:{game.browserPlayer(0),game.browserPlayer(1)})
+            if(p && p->nb_life>0 && std::abs(p->x-x)<=100 && std::abs(p->y-y)<=100){blocked=true;heroX=p->x;}
+        if(!blocked)return x;
+        x=heroX+(x>=heroX?150:-150);
+        x=std::clamp(x,offset+30,offset+scr_w-30);
+    }
+    return x;
+}
 bool bb_spawner_crowded(){
     static const int caps[]={5,8,12,16};
     int alive=0;
