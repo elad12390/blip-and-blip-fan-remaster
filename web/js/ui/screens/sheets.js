@@ -146,6 +146,8 @@ export class AboutScreen {
     p.button(box.x, by, half, 46, 'EXPORT SAVE', { top: C.helmet, bottom: C.helmetDark, size: 15, pressed: exp.pressed, focused: exp.focused });
     const imp = ui.region('import', { x: box.x + half + 14, y: by, w: half, h: 46 }, { onPress: () => m.importSave() });
     p.button(box.x + half + 14, by, half, 46, 'IMPORT SAVE', { top: C.sky, bottom: C.skyDark, size: 15, pressed: imp.pressed, focused: imp.focused });
+    const cw = 120, con = ui.region('open-console', { x: box.x + box.w - cw, y: box.y - 30, w: cw, h: 34 }, { onPress: () => { ui.remove(this); m.openConsole(); } });
+    p.button(box.x + box.w - cw, box.y - 30, cw, 34, 'CONSOLE', { top: '#3a3350', bottom: '#1c1729', size: 13, r: 10, pressed: con.pressed, focused: con.focused });
     const src = ui.region('source', { x: box.x, y: by + 60, w: box.w, h: 42 }, { onPress: () => window.open('https://github.com/benkaraban/blip-blop', '_blank', 'noopener') });
     p.button(box.x, by + 60, box.w, 42, 'ORIGINAL SOURCE CODE', { top: '#e8dcc3', bottom: '#b9a680', color: C.cream, size: 14, pressed: src.pressed, focused: src.focused });
   }

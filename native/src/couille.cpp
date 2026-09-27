@@ -1221,7 +1221,7 @@ void Couille::estTouche(const Tir * tir)
 
 void Couille::estTouche(int degats)
 {
-	if (invincible > 0 || etat == ETAT_MEURE)
+	if (invincible > 0 || etat == ETAT_MEURE || bb_god)
 		return;
 
 	pv -= degats;

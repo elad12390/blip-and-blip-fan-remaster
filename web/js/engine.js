@@ -4,8 +4,8 @@
 const releaseVersion=new URL(import.meta.url).searchParams.get('v');
 const resourceURL=path=>releaseVersion?`${path}?v=${encodeURIComponent(releaseVersion)}`:path;
 export class Engine {
-  constructor({ onFrame, onCommands, onGpuForget, gpu=()=>false, onState, onCheckpoint, onDeath, onComplete, onProgress, onError }) {
-    Object.assign(this,{onFrame,onCommands,onGpuForget,gpu,onState,onCheckpoint,onDeath,onComplete,onProgress,onError});
+  constructor({ onFrame, onCommands, onGpuForget, onLog, gpu=()=>false, onState, onCheckpoint, onDeath, onComplete, onProgress, onError }) {
+    Object.assign(this,{onFrame,onCommands,onGpuForget,onLog,gpu,onState,onCheckpoint,onDeath,onComplete,onProgress,onError});
   }
   async load() {
     if(this.promise)return this.promise;
@@ -14,10 +14,13 @@ export class Engine {
       const fail=error=>{if(failed)return;failed=true;this.ready=false;this.module=null;this.promise=null;this.running=false;clearInterval(this.poll);script.remove();reject(error);};
       const module=window.Module={
         canvas:document.querySelector('#native-screen'),
+        // Game input arrives through the bridge. Keep SDL's own keyboard handlers
+        // off the page so they cannot swallow typing (the debug console).
+        keyboardListeningElement:document.querySelector('#native-screen'),
         noInitialRun:true,
         locateFile:path=>resourceURL(`core/${path}`),
-        print:message=>console.debug('[game]',message),
-        printErr:message=>console.warn('[game]',message),
+        print:message=>{console.debug('[game]',message);this.onLog?.(String(message));},
+        printErr:message=>{console.warn('[game]',message);this.onLog?.(String(message));},
         setStatus:message=>this.onProgress?.(message),
         monitorRunDependencies:left=>this.onProgress?.(left?`Preparing ${left} game resources…`:'Starting engine…'),
         onFrame:(...args)=>this.onFrame?.(module,...args),

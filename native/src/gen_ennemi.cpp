@@ -60,10 +60,16 @@ void GenEnnemi::update()
 			}
 		}
 
-		capacite -= 1;
-
-		if (capacite <= 0)
-			a_detruire = true;
+		// A spawn blocked by a nearby hero is retried shortly instead of
+		// being lost: scripted fights count these kills (Smurf Village II's
+		// boss needs five), so a lost spawn made the stage unwinnable.
+		if (ok) {
+			capacite -= 1;
+			if (capacite <= 0)
+				a_detruire = true;
+		} else {
+			t = periode > 30 ? periode - 30 : 0;
+		}
 	}
 
 	if (x < offset - 100)

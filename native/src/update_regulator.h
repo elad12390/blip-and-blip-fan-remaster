@@ -33,6 +33,7 @@
  */
 
 #include "moving_average.h"
+#include "chrono.h"
 
 class UpdateRegulator {
    public:
@@ -49,7 +50,9 @@ class UpdateRegulator {
      */
     int Step() {
         int since_last = RegisterFrameTime();
-        dtime_ += since_last > 150 ? 150 : since_last;
+        // Cap catch-up after stalls; scaled so fast-forward is not throttled.
+        const int cap = 150 * (bb_time_scale_percent > 100 ? bb_time_scale_percent : 100) / 100;
+        dtime_ += since_last > cap ? cap : since_last;
         int mean_FST = last_frames_spare_time_.average();
 
         frame_time_.Reset();
@@ -84,7 +87,7 @@ class UpdateRegulator {
         // adjust for oddities
         if (since_last <= 0) {
             last_frames_spare_time_.Add(0);
-        } else if (since_last >= 500) {
+        } else if (since_last >= 500 * (bb_time_scale_percent > 100 ? bb_time_scale_percent : 100) / 100) {
             last_frames_spare_time_.Add(0);
         } else {
             last_frames_spare_time_.Add(since_last - delay_goal_);

@@ -28,7 +28,7 @@ int bb_spawn_copies(){
 void bb_reset_spawn_accumulator(){spawnAccumulator=50;}
 bool bb_running=false, bb_paused=false, bb_game_over=false, bb_completed=false, bb_in_game=false;
 int bb_view_width=640, bb_view_height=480, bb_camera_x=0;
-bool bb_gameplay_frame=false;
+bool bb_gameplay_frame=false, bb_story_screen=false, bb_in_simulation_step=false;
 static int requestedWidth=640;
 
 // The living player the lamp follows: P1 first, then P2.
@@ -164,10 +164,10 @@ EMSCRIPTEN_KEEPALIVE void bb_start(int mode,int player,int part){
 EMSCRIPTEN_KEEPALIVE const char* bb_state_json(){
     Couille* p=game.browserPlayer(0);Couille* p2=game.browserPlayer(1);
     snprintf(stateBuffer,sizeof(stateBuffer),
-      "{\"inGame\":%s,\"running\":%s,\"paused\":%s,\"mode\":\"%s\",\"difficulty\":%d,\"part\":%d,\"level\":\"%s\",\"player\":%d,\"players\":%d,\"x\":%d,\"y\":%d,\"hp\":%d,\"maxHp\":%d,\"lives\":%d,\"weapon\":%d,\"ammo\":%d,\"cows\":%d,\"score\":%d,\"kills\":%d,\"offset\":%d,\"cameraX\":%d,\"viewportWidth\":%d,\"viewportHeight\":%d,\"playLeft\":%d,\"playRight\":%d,\"frameIsGameplay\":%s,\"locked\":%s,\"nativeHud\":false,\"bonusTimer\":%d,\"gameOver\":%s,\"completed\":%s,\"firing\":%s,\"player2\":{\"x\":%d,\"y\":%d,\"hp\":%d,\"lives\":%d,\"weapon\":%d,\"ammo\":%d,\"cows\":%d}}",
-      bb_in_game?"true":"false",bb_running?"true":"false",bb_paused?"true":"false",bb_mode?"roguelite":"original",bb_difficulty,bb_part,currentLevel,bb_player,bb_players,
+      "{\"inGame\":%s,\"running\":%s,\"paused\":%s,\"mode\":\"%s\",\"difficulty\":%d,\"cheated\":%s,\"part\":%d,\"level\":\"%s\",\"player\":%d,\"players\":%d,\"x\":%d,\"y\":%d,\"hp\":%d,\"maxHp\":%d,\"lives\":%d,\"weapon\":%d,\"ammo\":%d,\"cows\":%d,\"score\":%d,\"kills\":%d,\"offset\":%d,\"cameraX\":%d,\"viewportWidth\":%d,\"viewportHeight\":%d,\"playLeft\":%d,\"playRight\":%d,\"frameIsGameplay\":%s,\"locked\":%s,\"nativeHud\":false,\"bonusTimer\":%d,\"gameOver\":%s,\"completed\":%s,\"firing\":%s,\"player2\":{\"x\":%d,\"y\":%d,\"hp\":%d,\"lives\":%d,\"weapon\":%d,\"ammo\":%d,\"cows\":%d}}",
+      bb_in_game?"true":"false",bb_running?"true":"false",bb_paused?"true":"false",bb_mode?"roguelite":"original",bb_difficulty,bb_cheated?"true":"false",bb_part,currentLevel,bb_player,bb_players,
       p?p->x-bb_camera_x:0,p?p->y:0,p?p->pv:0,bb_max_hp(),p?p->nb_life:0,p?p->id_arme:0,p?p->ammo:0,p?p->nb_cow_bomb:0,
-      (p?p->getScore():0)+(p2?p2->getScore():0),game_flag[FLAG_NB_KILL],offset,bb_camera_x,bb_view_width,bb_view_height,0,bb_view_width,bb_gameplay_frame?"true":"false",scroll_locked?"true":"false",game_flag[FLAG_TIMER],bb_game_over?"true":"false",bb_completed?"true":"false",p&&p->tire?"true":"false",
+      (p?p->getScore():0)+(p2?p2->getScore():0),game_flag[FLAG_NB_KILL],offset,bb_camera_x,bb_view_width,bb_view_height,0,bb_view_width,bb_gameplay_frame&&!bb_story_screen?"true":"false",scroll_locked?"true":"false",game_flag[FLAG_TIMER],bb_game_over?"true":"false",bb_completed?"true":"false",p&&p->tire?"true":"false",
       p2?p2->x-bb_camera_x:0,p2?p2->y:0,p2?p2->pv:0,p2?p2->nb_life:0,p2?p2->id_arme:0,p2?p2->ammo:0,p2?p2->nb_cow_bomb:0);
     stateJson.assign(stateBuffer,strlen(stateBuffer)-1);
     stateJson+=game.goShowing()?",\"go\":true":",\"go\":false";
@@ -210,7 +210,7 @@ void bb_complete(){if(app_killed || pending || bb_completed)return;bb_completed=
 void bb_run(){
     for(;;){
         while(!pending)emscripten_sleep(30);
-        pending=0;app_killed=false;bb_running=true;bb_game_over=bb_completed=false;damageRemainder=0;
+        pending=0;app_killed=false;bb_running=true;bb_god=false;bb_cheated=false;bb_game_over=bb_completed=false;damageRemainder=0;
         bb_part=bb_start_part;bb_in_game=false;bb_prepare_frame(false);
         if(bb_start_part==0){
             snprintf(currentLevel,sizeof(currentLevel),"Opening cinematic");

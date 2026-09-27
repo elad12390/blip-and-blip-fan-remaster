@@ -182,8 +182,13 @@ bool Input::open(int flags)
 
 void Input::update()
 {
-    bb_yield();
-    buffer[SDLK_RETURN] = bb_input(0,7);
+    // Blocking menu/tally loops rely on this yield to let the browser run.
+    // Gameplay steps already yield once per rendered frame; yielding per
+    // step cost ~4ms each (browser timer clamping) and throttled the game.
+    if (!bb_in_simulation_step) bb_yield();
+    // Story screens ("press a key", briefings, results, cinematics) accept
+    // Enter, Fire or Jump; in gameplay only Enter means confirm.
+    buffer[SDLK_RETURN] = bb_input(0,7) || (!bb_in_game && (bb_input(0,4) || bb_input(0,5)));
     buffer[SDLK_ESCAPE] = bb_input(0,8);
     specialsbuffer[SDLK_LEFT & 0xFFF] = bb_input(0,0);
     specialsbuffer[SDLK_RIGHT & 0xFFF] = bb_input(0,1);
@@ -320,6 +325,7 @@ unsigned int Input::waitKey()
 
 	while (1)
 	{
+		if (bb_in_simulation_step) bb_yield();
 		update();
         if(app_killed) return 0;
 		for (int i = 0; i < 255; i++)
@@ -410,6 +416,7 @@ void Input::waitClean()
 	while (1)
 	{
 		bool j = false;
+		if (bb_in_simulation_step) bb_yield();
 		update();
         if(app_killed)return;
 		for (int i = 0; i < 255; i++)

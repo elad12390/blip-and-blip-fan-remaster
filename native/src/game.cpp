@@ -59,6 +59,7 @@
 #include "fic_events.h"
 #include "game.h"
 #include "gpu_frame.h"
+#include <emscripten.h>
 #include "gen_bonus.h"
 #include "gen_ennemi.h"
 #include "globals.h"
@@ -479,7 +480,6 @@ bool Game::joueNiveau(const char* nom_niveau, int type) {
     bb_in_game = true;
     while (!joueurs_morts && !niveau_fini && !skipped && !app_killed) {
         gameLoop();
-        updateVictoryAndDefeat();
     }
 
     bb_in_game = false;
@@ -1219,11 +1219,21 @@ void Game::drawAll(bool flip) {
 void Game::gameLoop() {
     if (bb_paused) { bb_yield(); update_regulator_.Skip(); return; }
     int n_updates = update_regulator_.Step();
+    const double t0 = emscripten_get_now();
+    int steps = 0;
     for (; n_updates > 0; --n_updates) {
+        bb_in_simulation_step = true;
         updateAll();
+        bb_in_simulation_step = false;
+        ++steps;
+        // Victory/defeat count simulation steps, not rendered frames, so a
+        // slow display or fast-forward cannot stretch the end-of-stage wait.
+        updateVictoryAndDefeat();
+        if (niveau_fini || joueurs_morts || skipped || app_killed) break;
     }
-
+    const double t1 = emscripten_get_now();
     drawAll();
+    bb_record_timing(steps, t1 - t0, emscripten_get_now() - t1);
 }
 
 //-----------------------------------------------------------------------------
@@ -1828,6 +1838,9 @@ void Game::updateCheat() {
 //-----------------------------------------------------------------------------
 
 void Game::showPE(bool bonus, bool fuckOff) {
+    // The browser treats the results tally as a story screen (Continue, no fight controls).
+    struct ResultsScreen { ResultsScreen() { bb_story_screen = true; bb_push_state(); } ~ResultsScreen() { bb_story_screen = false; } } resultsScreen;
+
     if (app_killed) return;
     Fonte* fnt_p1;
     Fonte* fnt_p2;

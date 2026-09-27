@@ -53,6 +53,9 @@ void GenEnnemiTMP::update()
 			a_detruire = true;
 	}
 
-	if ((sens == SENS_DROITE && x < offset - 200) || (sens == SENS_GAUCHE && x < offset + (scr_w + 50)))
+	// Keep the original 640-screen distance: a wider window reaches these
+	// right-side spawners before a fight locks, and removing one early loses
+	// enemies that scripted fights need (Smurf Village II's boss).
+	if ((sens == SENS_DROITE && x < offset - 200) || (sens == SENS_GAUCHE && x < offset + kAuthoredScreenWidth + 50))
 		a_detruire = true;
 }

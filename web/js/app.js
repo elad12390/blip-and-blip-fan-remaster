@@ -27,6 +27,7 @@ const engine = new Engine({
   onGpuForget: (m, ...args) => renderer.forgetSurfaces(m, ...args),
   gpu: () => renderer.supportsCommands,
   onProgress: message => model?.onProgress(message),
+  onLog: message => model?.log(message),
   onState: state => { renderer.state = state; model?.onState(state); },
   onCheckpoint: state => model?.onCheckpoint(state),
   onDeath: state => model?.onDeath(state),
@@ -54,6 +55,7 @@ try {
     pauseKeys: () => { const b = model?.bindings; if (!b) return ['Escape', 'KeyP']; return input.coop ? [...b.coop1.pause, ...b.coop2.pause] : b.solo.pause; },
     pauseButtons: () => model?.bindings?.pad.pause ?? [9],
     onGamepad: pad => model?.onGamepad(pad),
+    onConsoleKey: () => model?.toggleConsole(),
   });
   model = new GameModel({ engine, renderer, input, touch, ui, gameCanvas });
   model.showTitle();
@@ -68,4 +70,4 @@ document.addEventListener('visibilitychange', () => { if (document.hidden) model
 window.addEventListener('blur', () => model?.pause());
 window.addEventListener('storage', e => { if (e.key === SAVE_KEY) model?.reloadSave(); });
 
-window.blipBlop = { engine, renderer, get ui() { return ui; }, get model() { return model; }, get state() { return model?.state ?? {}; }, get save() { return model ? structuredClone(model.save) : null; } };
+window.blipBlop = { debug: { run: line => model.runDebug(line), world: () => model.debugWorld() }, engine, renderer, get ui() { return ui; }, get model() { return model; }, get state() { return model?.state ?? {}; }, get save() { return model ? structuredClone(model.save) : null; } };

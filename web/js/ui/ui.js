@@ -7,8 +7,8 @@ import { Painter, C } from './paint.js';
 // resolved against the regions of the last frame. Only the top screen is
 // interactive. A screen without `modal` lets gameplay input through.
 export class UI {
-  constructor(canvas, art, { onPauseKey, touch, pauseKeys = () => ['Escape', 'KeyP'], pauseButtons = () => [9], onGamepad } = {}) {
-    this.pauseKeys = pauseKeys; this.pauseButtons = pauseButtons; this.onGamepad = onGamepad;
+  constructor(canvas, art, { onPauseKey, touch, pauseKeys = () => ['Escape', 'KeyP'], pauseButtons = () => [9], onGamepad, onConsoleKey } = {}) {
+    this.pauseKeys = pauseKeys; this.pauseButtons = pauseButtons; this.onGamepad = onGamepad; this.onConsoleKey = onConsoleKey;
     this.capture = null;
     this.canvas = canvas;
     this.ctx = canvas.getContext('2d');
@@ -125,6 +125,7 @@ export class UI {
       else if (e.code === 'Escape') this.endCapture(null);
       return;
     }
+    if (e.code === 'Backquote') { e.preventDefault(); if (!e.repeat) this.onConsoleKey?.(); return; }
     const top = this.top;
     if (!this.modal) {
       if (this.pauseKeys().includes(e.code)) { e.preventDefault(); if (!e.repeat) this.onPauseKey?.(); }
@@ -191,6 +192,8 @@ export class UI {
       else if (this.capture.kind === 'key' && pressed >= 0 && performance.now() - this.capture.since > 250) this.endCapture(null);
       return;
     }
+    // Select + Start opens the debug console.
+    if (is[8] && edge(9) || is[9] && edge(8)) { this.onConsoleKey?.(); return; }
     if (this.pauseButtons().some(edge)) {
       if (this.modal) this.top?.back?.(this); else this.onPauseKey?.();
     }

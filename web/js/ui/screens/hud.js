@@ -38,7 +38,10 @@ export class HudScreen {
     iconButton(ui, 'hud-pause', layout.pause.x, layout.pause.y, layout.pause.r, 'pause', null, { onDown: () => m.pause(), focusable: false });
     if (layout.touch) this.touchControls(ui, layout, state, gameplay);
     else if (gameplay) this.keyHints(ui, layout, now);
+    else if (!dialogue && m.playing) this.continuePrompt(ui, layout, now);
     this.drawBanner(ui, now);
+    if (m.showFps) this.fps(ui, layout, now);
+    if (m.showOverlay && state.inGame) this.overlay(ui, layout, state);
     this.syncTouchZones(layout, gameplay);
   }
 
@@ -116,6 +119,35 @@ export class HudScreen {
     }
   }
 
+  // Debug markers: every entity's index, type and health at its position.
+  overlay(ui, layout, state) {
+    const world = this.model.debugWorld(), r = this.model.renderer, f = r.frame, v = r.viewport;
+    if (!world || !f || !v) return;
+    const g = ui.ctx, dpr = v.dpr, camX = state.cameraX ?? world.offset;
+    const toScreen = (x, y) => [layout.game.x + (f.x + (x - camX) * f.scale) / dpr, layout.game.y + (f.y + (y - (f.cameraY ?? 0)) * f.scale) / dpr];
+    g.save(); g.font = `700 11px ui-monospace, Menlo, monospace`; g.textAlign = 'center';
+    const mark = (x, y, color, label) => {
+      const [sx, sy] = toScreen(x, y);
+      g.strokeStyle = color; g.lineWidth = 2; g.beginPath(); g.arc(sx, sy, 6, 0, Math.PI * 2); g.stroke();
+      g.fillStyle = '#000b'; const w = g.measureText(label).width + 8; g.fillRect(sx - w / 2, sy - 26, w, 15);
+      g.fillStyle = color; g.fillText(label, sx, sy - 15);
+    };
+    for (const e of world.enemies) mark(e.x, e.y, e.count ? '#ff7b62' : '#9ff7ff', `${e.i} ${e.type.replace(/^Ennemi/, '')} ${e.pv}`);
+    world.players.forEach((p, i) => p && mark(p.x, p.y, '#9dff72', `p${i + 1} ${p.hp}hp`));
+    const [lx] = toScreen(world.offset, 0), [rx] = toScreen(world.offset + world.scrW, 0);
+    g.strokeStyle = '#fff08a'; g.setLineDash([6, 6]); g.beginPath(); g.moveTo(lx, layout.game.y); g.lineTo(lx, layout.game.y + layout.game.h); g.moveTo(rx, layout.game.y); g.lineTo(rx, layout.game.y + layout.game.h); g.stroke();
+    g.restore();
+  }
+
+  fps(ui, layout, now) {
+    const r = this.model.renderer;
+    if (!this.fpsSample || now - this.fpsSample.t > 500) {
+      if (this.fpsSample) this.fpsValue = ((r.frames - this.fpsSample.frames) * 1000 / (now - this.fpsSample.t)).toFixed(0);
+      this.fpsSample = { t: now, frames: r.frames };
+    }
+    ui.paint.body(`${this.fpsValue ?? '…'} FPS  ·  ${r.compositor ? 'GPU' : 'CPU'}  ·  window ${this.model.state.viewportWidth ?? '?'}`, layout.game.x + layout.game.w / 2, layout.game.y + 64, { size: 12, align: 'center', color: C.goldLight });
+  }
+
   // In-level conversations over the live world: the top speaker on the left,
   // the bottom speaker on the right, as in the original screens.
   dialogue(ui, layout, dialogue, now) {
@@ -187,6 +219,18 @@ export class HudScreen {
     const x = right - w - bounce + (1 - enter) * (w + 40), y = layout.game.y + layout.game.h * .42 - h / 2;
     g.save(); g.shadowColor = '#000a'; g.shadowBlur = 8; g.shadowOffsetY = 4;
     g.drawImage(ui.art.misc, frame[0], frame[1], frame[2], frame[3], x, y, w, h);
+    g.restore();
+  }
+
+  // Briefings, results and cinematics wait for the player: say so, and let a
+  // click continue too.
+  continuePrompt(ui, layout, now) {
+    const p = ui.paint, g = ui.ctx, w = Math.min(420, ui.width - 40), h = 52;
+    const x = (ui.width - w) / 2, y = ui.height - h - Math.max(46, ui.height * .075) - (layout.inset.bottom || 0);
+    const state = ui.region('continue-prompt', { x, y, w, h }, { onDown: () => this.model.pressConfirm(), focusable: false });
+    g.save(); g.globalAlpha = .75 + .25 * Math.sin(now / 280);
+    const key = this.model.gamepad ? 'A' : 'ENTER';
+    p.button(x, y, w, h, `${key}  ·  CONTINUE`, { top: C.goldLight, bottom: C.goldDark, size: 20, pressed: state.pressed });
     g.restore();
   }
 

@@ -6,6 +6,8 @@ extern int bb_armor, bb_firepower, bb_supply;
 // 0 Easy, 1 Normal (original), 2 Hard, 3 Insane. Scales how many ordinary
 // enemies a stage spawns; bosses and scripted enemies are never touched.
 extern int bb_difficulty;
+// Console cheats: god mode ignores damage; any cheat marks the run.
+extern bool bb_god, bb_cheated;
 // Percent of the original ordinary-enemy count for the current difficulty.
 int bb_enemy_percent();
 // How many copies of one authored ordinary spawn to create (0..n), using a
@@ -17,6 +19,8 @@ int bb_input(int player, int bit);
 int bb_max_hp();
 int bb_bonus_damage(int base);
 void bb_yield();
+// True while Game::gameLoop runs simulation steps (no per-step yielding).
+extern bool bb_in_simulation_step;
 void bb_run();
 void bb_checkpoint(const char* level);
 void bb_level_begin(Couille* p1, Couille* p2);
@@ -32,7 +36,11 @@ extern char bb_rpg_bank[32];
 // requests the window width; see scr_w in globals.h.
 extern int bb_view_width, bb_view_height, bb_camera_x;
 extern bool bb_gameplay_frame;
+// A blocking non-gameplay screen inside a stage (results tally).
+extern bool bb_story_screen;
 void bb_prepare_frame(bool gameplay);
 void bb_present_frame();
 void bb_update_play_width();
+// Frame timing for the debug console (simulation steps and milliseconds).
+void bb_record_timing(int steps, double updateMs, double drawMs);
 extern "C" void bb_set_viewport(int width, int height);

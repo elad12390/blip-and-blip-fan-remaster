@@ -4,6 +4,9 @@ import { HudScreen } from './ui/screens/hud.js';
 import { PauseScreen, DefeatScreen, CompleteScreen, LoadingScreen } from './ui/screens/overlays.js';
 import { WorkshopScreen, ScoresScreen, SettingsScreen, AboutScreen } from './ui/screens/sheets.js';
 import { bind, bindCoop, DEFAULT_BINDINGS, clone } from './bindings.js';
+import { ConsoleScreen } from './ui/screens/console.js';
+import { createAutopilot, autopilotStep } from './autopilot.js';
+import { execute } from './debug-commands.js';
 
 const PART_NAMES = ['Briefing', 'Smurf Village I', 'Briefing', 'Smurf Village II', 'Briefing', 'Duck Hunt', 'Briefing', 'Care Bears I', 'Briefing', 'Care Bears II', 'Care Bears III', 'Briefing', 'Snorks I', 'Snorks II', 'Briefing', 'Lemmings', 'Briefing', 'Video Game World', 'Briefing', 'Mario and Luigi', 'Briefing', 'The Final Battle'];
 const newRunId = () => globalThis.crypto?.randomUUID?.() ?? `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
@@ -25,7 +28,85 @@ export class GameModel {
     this.menu = new MenuScreen(this);
     this.hud = new HudScreen(this, touch);
     this.loading = new LoadingScreen(this);
+    this.engineLog = [];
+    this.showFps = false; this.showOverlay = false; this.autopilot = null;
     this.applySettings();
+  }
+
+  // ---------- debug console ----------
+  log(message) { this.engineLog.push(message); if (this.engineLog.length > 200) this.engineLog.shift(); }
+
+  toggleConsole() { if (this.console && this.ui.has(this.console)) this.closeConsole(); else this.openConsole(); }
+  openConsole() {
+    this.console ??= new ConsoleScreen(this, document.querySelector('#console-input'));
+    if (this.ui.has(this.console)) return;
+    // The world freezes while the console is open, without the pause menu.
+    this.consolePaused = this.playing && !this.paused && !this.ended;
+    if (this.consolePaused) { this.paused = true; this.input.enable(false); this.touch.releaseAll(); this.engine.pause(true); }
+    this.ui.push(this.console);
+  }
+  closeConsole() {
+    if (!this.console || !this.ui.has(this.console)) return;
+    this.ui.remove(this.console);
+    if (this.consolePaused && this.playing && !this.ended) { this.paused = false; this.engine.pause(false); this.input.enable(true); this.gameCanvas.focus(); }
+    this.consolePaused = false;
+  }
+
+  debugWorld() { const m = this.engine.module; return m && this.state.inGame ? JSON.parse(m.UTF8ToString(m._bb_debug_world_json())) : null; }
+
+  setAutoplay(on) {
+    clearInterval(this.autopilot?.timer);
+    this.autopilot = null;
+    this.input.clear('autopilot');
+    if (!on) return;
+    const memory = createAutopilot();
+    this.autopilot = { memory, timer: setInterval(() => {
+      if (!this.playing || this.paused || this.ended) return;
+      let world = null;
+      try { world = this.state.inGame && this.state.frameIsGameplay ? this.debugWorld() : null; } catch {}
+      this.input.set('autopilot', autopilotStep(memory, this.state, world));
+    }, 40) };
+  }
+
+  // Scripting entry point for tests and the browser devtools console:
+  // blipBlop.debug.run('test 16') returns the printed lines.
+  runDebug(line) {
+    const lines = [];
+    const screen = { clear: () => {} };
+    for (const out of execute(this.debugApi(screen), line)) lines.push(out);
+    return lines;
+  }
+
+  debugApi(screen) {
+    const m = this.engine.module;
+    return {
+      speed: percent => m._bb_debug_speed(percent),
+      autoplay: on => { if (on === undefined) return !!this.autopilot; this.setAutoplay(on); return on; },
+      entity: (index, field, value) => { const r = m._bb_debug_entity(index, field, value); this.state = { ...this.state, cheated: true }; return r; },
+      spawn: (id, x, y, dir) => m._bb_debug_spawn(id, x, y, dir),
+      flag: (i, v) => m._bb_debug_flag(i, v),
+      unlock: () => m._bb_debug_unlock(),
+      toggleOverlay: () => (this.showOverlay = !this.showOverlay),
+      inGame: () => !!this.state.inGame && !!m,
+      state: () => this.state,
+      world: () => this.debugWorld(),
+      cheat: (op, a, b) => { const result = m._bb_cheat(op, a, b); this.state = { ...this.state, cheated: true }; this.engine.refreshState?.(); return result; },
+      warp: part => { this.closeConsole(); this.warp(part); },
+      setDifficulty: level => { this.setDifficulty(level); this.engine.module?._bb_set_difficulty?.(level); },
+      setShards: n => { this.save.shards = n; this.persist(); },
+      toggleFps: () => (this.showFps = !this.showFps),
+      engineLog: () => this.engineLog.slice(-40),
+      clear: () => screen.clear(),
+    };
+  }
+
+  warp(part) {
+    if (!this.engine.ready) return;
+    this.playing = true; this.paused = false; this.ended = false; this.resumed = true; this.runId = newRunId();
+    this.ui.replace(this.hud);
+    this.input.coop = this.players === 2;
+    this.engine.start({ mode: this.mode, player: this.hero, part, upgrades: this.save.upgrades, players: this.players, difficulty: this.save.difficulty });
+    this.engine.pause(false); this.input.enable(true); this.playStartedAt = performance.now();
   }
 
   // ---------- derived ----------
@@ -139,6 +220,11 @@ export class GameModel {
     this.paused = false; this.engine.pause(false); this.input.enable(true); this.gameCanvas.focus();
   }
 
+  pressConfirm() {
+    this.input.set('confirm-tap', 128);
+    setTimeout(() => this.input.clear('confirm-tap'), 160);
+  }
+
   // The engine's own dialogue skip (original Escape key, bit 256), held briefly.
   skipDialogue() {
     this.input.set('dialogue-skip', 256);
@@ -148,6 +234,7 @@ export class GameModel {
   togglePause() { if (this.paused) this.resume(); else this.pause(); }
 
   quit() {
+    this.setAutoplay(false); this.engine.module?._bb_debug_speed?.(100);
     this.startAttempt++;
     this.engine.stop(); this.input.enable(false); this.touch.releaseAll();
     this.playing = false; this.paused = false; this.ended = false;
@@ -168,13 +255,14 @@ export class GameModel {
   }
 
   onCheckpoint(state) {
-    if (this.mode !== 'roguelite') return;
+    if (this.mode !== 'roguelite' || state.cheated) return;
     checkpointRun(this.save, { ...state, part: state.part ?? 0, player: this.hero, players: this.players, mode: this.mode, runId: this.runId });
     this.persist();
     this.ui.toast('Checkpoint saved.');
   }
 
   onDeath(state) {
+    if (state.cheated) { this.end(); this.ui.push(new DefeatScreen(this, { reward: 'Cheats were used, so this run earns no score or shards.', score: state.score ?? 0 })); return; }
     recordScore(this.save, { ...state, id: this.runId, mode: this.mode, player: this.hero, resumed: this.resumed });
     const gained = settleRun(this.save, { ...state, id: this.runId, mode: this.mode });
     this.persist();
@@ -184,6 +272,7 @@ export class GameModel {
   }
 
   onComplete(state) {
+    if (state.cheated) { this.end(); this.ui.push(new CompleteScreen(this, { message: 'You finished the campaign with cheats on. No score or shards this time.' })); return; }
     recordScore(this.save, { ...state, id: this.runId, mode: this.mode, player: this.hero, completed: true, resumed: this.resumed });
     const gained = settleRun(this.save, { ...state, id: this.runId, mode: this.mode, completed: true });
     if (this.mode === 'roguelite') this.save.checkpoint = null;

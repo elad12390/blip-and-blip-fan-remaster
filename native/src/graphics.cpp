@@ -8,6 +8,9 @@
 extern SDL::Surface* backSurface;
 
 void Graphics::Init() {
+    // Game input arrives through the browser bridge. Bind SDL's keyboard
+    // handlers to the hidden native canvas so they never swallow page typing.
+    SDL_SetHint(SDL_HINT_EMSCRIPTEN_KEYBOARD_ELEMENT, "#native-screen");
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_TIMER | SDL_INIT_EVENTS) == -1) {
         throw std::runtime_error(std::string("Can't initialize SDL") +
                                  SDL_GetError());

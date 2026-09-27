@@ -19,6 +19,9 @@
 #include <cstring>
 #include "browser_material.h"
 #include "ben_maths.h"
+#include "event.h"
+#include <string>
+#include <typeinfo>
 extern Game game;
 static Couille* playerAt(int n){return game.browserPlayer(n==1?1:0);}
 extern "C" {

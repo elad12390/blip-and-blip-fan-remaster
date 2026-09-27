@@ -23,6 +23,7 @@
 //		Headers
 //-----------------------------------------------------------------------------
 
+#include <string>
 #include "graphics.h"
 #include "dd_gfx.h"
 #include "picture.h"
@@ -104,6 +105,7 @@ protected:
 public:
 	const RPGPlayer& rpgPlayer() const { return rpg; }
 	bool goShowing() const { return go_.Showing(); }
+	std::string victoryJson() const { return "{\"x\":" + std::to_string(vic_x) + ",\"flags\":[" + std::to_string(vic_flag1) + "," + std::to_string(vic_val1) + "," + std::to_string(vic_flag2) + "," + std::to_string(vic_val2) + "],\"wait\":" + std::to_string(wait_for_victory) + ",\"progress\":" + std::to_string(progressOffset()) + "}"; }
 protected:
 
         GoArrow go_;
@@ -122,9 +124,8 @@ protected:
 
 public:
     Couille* browserPlayer(int n) { return n ? player2 : player1; }
-#ifdef BB_QA
+    // Console skip and QA: end the current stage as a victory.
     void browserQaFinish() { niveau_fini = true; }
-#endif
 	// Constructeur -> met tout à NULL
 	//
 	Game();
