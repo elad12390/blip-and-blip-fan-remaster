@@ -103,6 +103,7 @@ protected:
 	RPGPlayer	rpg;
 public:
 	const RPGPlayer& rpgPlayer() const { return rpg; }
+	bool goShowing() const { return go_.Showing(); }
 protected:
 
         GoArrow go_;

@@ -94,11 +94,12 @@ export class Engine {
     this.onProgress?.('Original game data verified. Starting…');
   }
   parse(value){if(typeof value==='number')value=this.module?.UTF8ToString(value);if(typeof value==='string'){try{return JSON.parse(value);}catch{return {};}}return value??{};}
-  start({mode,player,part,upgrades,players=1}){
+  start({mode,player,part,upgrades,players=1,difficulty=1}){
     const m=this.module;if(!m)throw Error('Engine is not loaded.');
     this.applyViewport();
     m._bb_set_upgrades?.(mode==='roguelite'?upgrades.armor:0,mode==='roguelite'?upgrades.firepower:0,mode==='roguelite'?upgrades.supply:0);
     m._bb_set_players?.(players);
+    m._bb_set_difficulty?.(difficulty);
     m._bb_start?.(mode==='roguelite'?1:0,player,part??0);
     if(!this.running){this.running=true;try{m.callMain([]);}catch(error){this.running=false;throw error;}this.poll=setInterval(()=>{
       if(m._bb_state_json){this.state=this.parse(m._bb_state_json());this.onState?.(this.state);}

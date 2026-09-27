@@ -1,5 +1,6 @@
 import { C } from '../paint.js';
 import { sheet, segmented, settingRow, toggle, slider } from '../components.js';
+import { ACTIONS, PAD_ACTIONS, LABELS, keyName, buttonName } from '../../bindings.js';
 
 const close = (ui, screen) => () => { ui.remove(screen); screen.onClose?.(); };
 
@@ -57,13 +58,14 @@ export class ScoresScreen {
 }
 
 export class SettingsScreen {
-  constructor(model) { this.model = model; this.modal = true; this.tab = model.touchVisible() || model.coarsePointer() ? 'touch' : 'display'; }
-  back(ui) { ui.remove(this); }
+  constructor(model) { this.model = model; this.modal = true; this.tab = model.touchVisible() ? 'touch' : model.gamepad ? 'controls' : 'display'; this.table = model.gamepad ? 'pad' : 'solo'; }
+  back(ui) { if (ui.capture) ui.endCapture(null); else ui.remove(this); }
   draw(ui) {
     const m = this.model, s = m.save.settings, p = ui.paint;
     const compact = ui.height < 520, rowH = compact ? 52 : 60;
-    const box = sheet(ui, { title: 'OPTIONS', width: 540, height: 140 + rowH * 4 + (compact ? 0 : 20), onClose: () => ui.remove(this) });
-    segmented(ui, 'settings-tab', box.x, box.y, box.w, 46, [{ value: 'touch', label: 'TOUCH' }, { value: 'display', label: 'DISPLAY' }, { value: 'keys', label: 'KEYS' }], this.tab, v => { this.tab = v; });
+    const box = sheet(ui, { title: 'OPTIONS', width: 580, height: 140 + rowH * 4 + (compact ? 0 : 20), onClose: () => { if (ui.capture) ui.endCapture(null); ui.remove(this); } });
+    segmented(ui, 'settings-tab', box.x, box.y, box.w, 46, [{ value: 'touch', label: 'TOUCH' }, { value: 'display', label: 'DISPLAY' }, { value: 'controls', label: 'CONTROLS' }], this.tab, v => { if (ui.capture) ui.endCapture(null); this.tab = v; });
+    if (this.tab === 'controls') { this.controls(ui, box, compact); return; }
     const x = box.x, w = box.w;
     let y = box.y + 62;
     const choice = (id, key, options) => (cx, cy, cw, ch) => segmented(ui, id, cx, cy, cw, ch, options, s[key], v => m.setSetting(key, v));
@@ -87,6 +89,47 @@ export class SettingsScreen {
     }
   }
 }
+
+// Remapping grid, added to SettingsScreen below.
+function drawControls(ui, box, compact) {
+  const m = this.model, p = ui.paint, g = ui.ctx, b = m.bindings;
+  const tables = [{ value: 'solo', label: 'KEYS' }, { value: 'coop1', label: 'P1 CO-OP' }, { value: 'coop2', label: 'P2 CO-OP' }, { value: 'pad', label: 'PAD' }];
+  const y0 = box.y + 56;
+  segmented(ui, 'bind-table', box.x, y0, box.w, compact ? 38 : 42, tables, this.table, v => { if (ui.capture) ui.endCapture(null); this.table = v; });
+  const pad = this.table === 'pad';
+  const actions = pad ? PAD_ACTIONS : ACTIONS;
+  const cols = 2, rows = Math.ceil(actions.length / cols), gap = 10;
+  const top = y0 + (compact ? 48 : 56), bottomReserve = compact ? 44 : 52;
+  const cellH = Math.min(48, (box.y + box.h - bottomReserve - top) / rows - 6);
+  const cellW = (box.w - gap) / cols;
+  actions.forEach((action, i) => {
+    const cx = box.x + (i % cols) * (cellW + gap), cy = top + Math.floor(i / cols) * (cellH + 6);
+    const list = pad ? b.pad[action] : b[this.table][action];
+    const listening = this.listening === `${this.table}:${action}`;
+    p.text(LABELS[action], cx, cy + cellH / 2, Math.min(14, cellH * .32), { color: C.ink, outline: false });
+    const bw = cellW * .52, bx = cx + cellW - bw;
+    const state = ui.region(`bind-${action}`, { x: bx, y: cy, w: bw, h: cellH }, {
+      onPress: () => {
+        this.listening = `${this.table}:${action}`;
+        const table = this.table;
+        ui.startCapture(pad ? 'button' : 'key', value => {
+          this.listening = null;
+          if (value !== null && value !== undefined) m.rebind(table, action, value);
+        }, { allowEscape: action === 'pause' });
+      },
+    });
+    const label = listening ? (pad ? 'PRESS BUTTON' : 'PRESS KEY') : (pad ? list.map(buttonName) : list.map(keyName)).join(' / ') || '—';
+    const pulse = listening ? .6 + .4 * Math.sin(performance.now() / 150) : 1;
+    g.save(); g.globalAlpha = pulse;
+    p.button(bx, cy, bw, cellH, label, { top: listening ? C.goldLight : '#f4f0ff', bottom: listening ? C.goldDark : '#a79fc4', size: Math.min(15, cellH * .34, bw / Math.max(6, label.length) * 1.5), r: 12, pressed: state.pressed, focused: state.focused });
+    g.restore();
+  });
+  const ry = box.y + box.h - (compact ? 38 : 44), rw = 150;
+  const reset = ui.region('bind-reset', { x: box.x + box.w - rw, y: ry, w: rw, h: compact ? 36 : 40 }, { onPress: () => m.resetBindings(this.table) });
+  p.button(box.x + box.w - rw, ry, rw, compact ? 36 : 40, 'RESET', { top: '#ff7b62', bottom: C.bandanaDark, size: 15, r: 12, pressed: reset.pressed, focused: reset.focused });
+  p.body(pad ? 'Move with the left stick or D-pad. Fire or Jump continues dialogue.' : 'Tap a slot, then press a key. Enter always continues dialogue.', box.x, ry + (compact ? 18 : 20), { size: 11, color: '#6a5a44', shadow: false, maxWidth: box.w - rw - 16 });
+}
+SettingsScreen.prototype.controls = drawControls;
 
 export class AboutScreen {
   constructor(model) { this.model = model; this.modal = true; }

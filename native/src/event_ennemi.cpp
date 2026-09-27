@@ -18,6 +18,8 @@
 
 #include "event_ennemi.h"
 #include "enemy.h"
+#include "browser_bridge.h"
+#include "personnage.h"
 
 #include "ennemi_smurf.h"
 #include "ennemi_smurf_gourmand.h"
@@ -366,10 +368,28 @@ void EventEnnemi::doEvent()
 		enn->y = y;
 		enn->dir = sens;
 
+		// Difficulty scales ordinary enemies only. Bosses (high health) and
+		// uncounted scripted enemies always spawn exactly as authored.
+		const bool ordinary = enn->count() && enn->pv <= 1500;
+		const int copies = ordinary ? bb_spawn_copies() : 1;
+		if (copies == 0) { delete enn; return; }
+
 		list_ennemis.emplace_back(enn);
 
 		if (enn->count())
 			nb_ennemis_created += 1;
+
+		// Extra copies trail the original, off-screen side first, so a group
+		// enters as a staggered line instead of a stacked sprite.
+		const int trail = sens == SENS_GAUCHE ? 42 : -42;
+		for (int i = 1; i < copies; i++) {
+			EventEnnemi copy = *this;
+			copy.x = x + trail * i;
+			const int saved = bb_difficulty;
+			bb_difficulty = 1;  // the copy itself must not multiply again
+			copy.doEvent();
+			bb_difficulty = saved;
+		}
 	} else {
 		debug << "Erreur : identité d'ennemi inconnue (" << id_ennemi << ")\n";
 	}

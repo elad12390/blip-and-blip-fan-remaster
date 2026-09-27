@@ -29,7 +29,11 @@ export function computeLayout({ width, height, touch = false, handedness = 'righ
   // Inventory sits beside the pause button, clear of the floor the heroes walk on.
   const topRightChip = (scale, extra) => ({ x: pause.x - pause.r - 14 * unit - (132 + extra) * scale, y: pause.y - 23 * scale, scale });
   if (!touch) {
-    layout.weapon = topRightChip(hudScale, 106);
+    // Narrow windows have no room beside pause: the inventory goes under the status block.
+    const chipWidth = 238 * hudScale;
+    layout.weapon = pause.x - pause.r - 14 * unit - chipWidth > hud.x + 190 * hudScale
+      ? topRightChip(hudScale, 106)
+      : { x: hud.x, y: hud.y + 80 * hudScale, scale: hudScale };
     layout.hints = { x: width - inset.right - 24 * unit, y: height - inset.bottom - 44 * unit, scale: unit };
     return layout;
   }

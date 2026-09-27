@@ -59,8 +59,8 @@ export class MenuScreen {
 
   // Row heights that fit the available height; returns [sizes, total].
   static sizes(available, hasContinue) {
-    const base = { mode: 56, players: 48, play: 84, cont: 50, row: 52, gap: 12 };
-    const total = z => z.mode + z.players + z.play + z.row + z.gap * 4 + (hasContinue ? z.cont + z.gap : 0);
+    const base = { mode: 56, players: 48, difficulty: 44, play: 84, cont: 50, row: 52, gap: 12 };
+    const total = z => z.mode + z.players + z.difficulty + z.play + z.row + z.gap * 5 + (hasContinue ? z.cont + z.gap : 0);
     const scale = Math.max(.72, Math.min(1, available / total(base)));
     const z = Object.fromEntries(Object.entries(base).map(([k, v]) => [k, Math.round(v * (k === 'gap' ? scale * scale : scale))]));
     return [z, total(z)];
@@ -73,6 +73,8 @@ export class MenuScreen {
     cy += z.mode + z.gap;
     segmented(ui, 'players', x, cy, w, z.players, [{ value: 1, label: 'SOLO' }, { value: 2, label: '2 PLAYERS' }], m.players, v => m.setPlayers(v));
     cy += z.players + z.gap;
+    segmented(ui, 'difficulty', x, cy, w, z.difficulty, [{ value: 0, label: 'EASY' }, { value: 1, label: 'NORMAL' }, { value: 2, label: 'HARD' }, { value: 3, label: 'INSANE' }], m.difficulty, v => m.setDifficulty(v));
+    cy += z.difficulty + z.gap;
     const play = ui.region('play', { x, y: cy, w, h: z.play }, { onPress: () => m.start(false), primary: !hasContinue });
     p.button(x, cy, w, z.play, 'PLAY', { size: z.play * .48, pressed: play.pressed, focused: play.focused });
     cy += z.play + z.gap + 4;
@@ -94,7 +96,7 @@ export class MenuScreen {
     const m = this.model, w = ui.width, h = ui.height;
     const margin = 16, cw = Math.min(460, w - margin * 2), x = (w - cw) / 2;
     const bottom = h - 18 - (m.safeBottom ?? 0);
-    const [z, controlsHeight] = MenuScreen.sizes(h * .42, hasContinue);
+    const [z, controlsHeight] = MenuScreen.sizes(h * .46, hasContinue);
     const controlsY = bottom - controlsHeight;
     const cardH = Math.min(190, Math.max(120, (controlsY - 20) * .32)), cardW = (cw - 16) / 2;
     const cardsY = controlsY - cardH - 22;
@@ -110,7 +112,7 @@ export class MenuScreen {
     const pw = Math.min(460, w * .4), px = w - pw - Math.max(20, w * .04);
     const top = 66 + (m.safeTop ?? 0), bottom = h - 16 - (m.safeBottom ?? 0);
     const available = bottom - top;
-    const [z, controlsHeight] = MenuScreen.sizes(available * .62, hasContinue);
+    const [z, controlsHeight] = MenuScreen.sizes(available * .68, hasContinue);
     const titleSpace = available > 520 ? 34 : 0;
     const cardH = Math.max(84, Math.min(260, available - controlsHeight - titleSpace - 20));
     const block = titleSpace + cardH + 20 + controlsHeight;

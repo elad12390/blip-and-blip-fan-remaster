@@ -1,36 +1,24 @@
 // Gameplay input: keyboard, gamepads and touch sources combine into the native
 // input masks. Menus, pause and focus navigation belong to the interface.
-const DEFAULT_KEYS = { ArrowLeft:1,KeyA:1,ArrowRight:2,KeyD:2,ArrowUp:4,KeyW:4,ArrowDown:8,KeyS:8,KeyJ:16,ControlLeft:16,KeyZ:16,Space:32,KeyK:32,AltLeft:32,KeyX:32,KeyL:64,ShiftLeft:64,KeyC:64,Enter:128 };
-const P1_COOP = {KeyA:1,KeyD:2,KeyW:4,KeyS:8,KeyF:16,KeyG:32,KeyH:64,Enter:128};
-const P2_COOP = {ArrowLeft:1,ArrowRight:2,ArrowUp:4,ArrowDown:8,KeyJ:16,KeyK:32,KeyL:64};
-
-export function gamepadMask(pad){
-  if(!pad||pad.connected===false)return 0;
-  let bits=0;const [x=0,y=0]=pad.axes??[];
-  const pressed=index=>!!pad.buttons[index]?.pressed;
-  if(x<-.25||pressed(14))bits|=1;if(x>.25||pressed(15))bits|=2;
-  if(y<-.25||pressed(12))bits|=4;if(y>.25||pressed(13))bits|=8;
-  if(pressed(2)||pressed(7))bits|=16;if(pressed(0))bits|=32;
-  if(pressed(1))bits|=64;
-  // Briefings use the shared Enter bit; A/X retain their gameplay actions too.
-  if(pressed(0)||pressed(2))bits|=128;
-  return bits;
-}
+import { DEFAULT_BINDINGS, keyMap, padMask } from './bindings.js';
 
 export class Input {
   constructor(send,{onFire,send2,blocked=()=>false}={}) {
     this.send=send;this.send2=send2;this.onFire=onFire;this.blocked=blocked;
     this.sources=new Map();this.sources2=new Map();
     this.active=false;this.coop=false;this.focused=true;this.autoFire=false;
+    this.setBindings(DEFAULT_BINDINGS);
 
     window.addEventListener('keydown',e=>{
       if(/INPUT|SELECT|TEXTAREA/.test(e.target?.tagName)||e.target?.isContentEditable)return;
       if(!this.acceptsInput())return;
-      if(this.coop&&P2_COOP[e.code]){e.preventDefault();this.sources2.set(e.code,P2_COOP[e.code]);this.flush();return;}
-      const bit=(this.coop?P1_COOP:DEFAULT_KEYS)[e.code];if(bit){e.preventDefault();this.set(e.code,bit);}
+      this.lastDevice='keyboard';
+      if(this.coop&&this.keys2[e.code]){e.preventDefault();this.sources2.set(e.code,this.keys2[e.code]);this.flush();return;}
+      const bit=(this.coop?this.keys1:this.keys)[e.code];if(bit){e.preventDefault();this.set(e.code,bit);}
+      else if(e.code==='Enter'||e.code==='NumpadEnter'){e.preventDefault();this.set(e.code,128);}
     });
     window.addEventListener('keyup',e=>{
-      if(DEFAULT_KEYS[e.code]||P1_COOP[e.code]||P2_COOP[e.code]){
+      if(this.keys[e.code]||this.keys1[e.code]||this.keys2[e.code]||e.code==='Enter'||e.code==='NumpadEnter'){
         if(this.active)e.preventDefault();
         this.sources2.delete(e.code);this.sources.delete(e.code);this.flush();
       }
@@ -45,8 +33,10 @@ export class Input {
       if(this.isBlocked())this.releaseAll();
       else if(this.active){
         // Keep browser slots stable: disconnecting P1 must not move P2 into P1.
-        this.sources.set('gamepad',gamepadMask(pads[0]));
-        const second=this.coop?gamepadMask(pads[1]):0;
+        const first=padMask(pads[0],this.bindings);
+        if(first)this.lastDevice='gamepad';
+        this.sources.set('gamepad',first);
+        const second=this.coop?padMask(pads[1],this.bindings):0;
         this.sources2.set('gamepad',second);
         this.sources.set('gamepad2-confirm',second&128);
         this.flush();
@@ -57,6 +47,13 @@ export class Input {
 
   isBlocked(){return !this.focused||document.hidden||this.blocked();}
   acceptsInput(){return this.active&&!this.isBlocked();}
+
+  setBindings(bindings){
+    this.bindings=bindings;
+    this.keys=keyMap(bindings,'solo');this.keys1=keyMap(bindings,'coop1');this.keys2=keyMap(bindings,'coop2');
+    // Keys held under the old mapping would never see a matching release.
+    if(this.last!==undefined)this.releaseAll();
+  }
 
   setAutoFire(value){this.autoFire=!!value;this.flush();}
 

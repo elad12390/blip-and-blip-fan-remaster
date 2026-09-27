@@ -18,6 +18,7 @@
 #include "gen_ennemi.h"
 #include "event_ennemi.h"
 #include "couille.h"
+#include "browser_bridge.h"
 
 #ifndef SENS_GAUCHE
 #define SENS_GAUCHE		0
@@ -51,7 +52,12 @@ void GenEnnemi::update()
 			e.sens = sens;
 			e.x = x;
 			e.y = y;
+			{
+			// Generator rate/capacity already carry the difficulty.
+			const int saved = bb_difficulty; bb_difficulty = 1;
 			e.doEvent();
+			bb_difficulty = saved;
+			}
 		}
 
 		capacite -= 1;

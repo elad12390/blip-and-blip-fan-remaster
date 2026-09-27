@@ -48,7 +48,13 @@ updateAppHeight();
 
 try {
   const art = await loadArt();
-  ui = new UI(uiCanvas, art, { touch, onPauseKey: () => model?.togglePause() });
+  ui = new UI(uiCanvas, art, {
+    touch,
+    onPauseKey: () => model?.togglePause(),
+    pauseKeys: () => { const b = model?.bindings; if (!b) return ['Escape', 'KeyP']; return input.coop ? [...b.coop1.pause, ...b.coop2.pause] : b.solo.pause; },
+    pauseButtons: () => model?.bindings?.pad.pause ?? [9],
+    onGamepad: pad => model?.onGamepad(pad),
+  });
   model = new GameModel({ engine, renderer, input, touch, ui, gameCanvas });
   model.showTitle();
   document.querySelector('#boot')?.remove();

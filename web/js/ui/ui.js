@@ -7,7 +7,9 @@ import { Painter, C } from './paint.js';
 // resolved against the regions of the last frame. Only the top screen is
 // interactive. A screen without `modal` lets gameplay input through.
 export class UI {
-  constructor(canvas, art, { onPauseKey, touch } = {}) {
+  constructor(canvas, art, { onPauseKey, touch, pauseKeys = () => ['Escape', 'KeyP'], pauseButtons = () => [9], onGamepad } = {}) {
+    this.pauseKeys = pauseKeys; this.pauseButtons = pauseButtons; this.onGamepad = onGamepad;
+    this.capture = null;
     this.canvas = canvas;
     this.ctx = canvas.getContext('2d');
     this.paint = new Painter(this.ctx, art);
@@ -106,11 +108,26 @@ export class UI {
     window.addEventListener('keyup', () => { this.keyPressed = null; });
   }
 
+  // Waits for the next key ('key') or gamepad button ('button') for remapping.
+  // Escape cancels a key capture unless `allowEscape`.
+  startCapture(kind, resolve, { allowEscape = false } = {}) {
+    this.capture = { kind, resolve, allowEscape, since: performance.now() };
+    this.padState.captureBase = null;
+  }
+  endCapture(value) { const c = this.capture; this.capture = null; c?.resolve(value); }
+
   key(e) {
     if (/INPUT|SELECT|TEXTAREA/.test(e.target?.tagName)) return;
+    if (this.capture) {
+      e.preventDefault(); e.stopImmediatePropagation?.();
+      if (e.repeat) return;
+      if (this.capture.kind === 'key') this.endCapture(e.code === 'Escape' && !this.capture.allowEscape ? null : e.code);
+      else if (e.code === 'Escape') this.endCapture(null);
+      return;
+    }
     const top = this.top;
     if (!this.modal) {
-      if (e.code === 'Escape' || e.code === 'KeyP') { e.preventDefault(); if (!e.repeat) this.onPauseKey?.(); }
+      if (this.pauseKeys().includes(e.code)) { e.preventDefault(); if (!e.repeat) this.onPauseKey?.(); }
       return;
     }
     const directions = { ArrowUp: [0, -1], KeyW: [0, -1], ArrowDown: [0, 1], KeyS: [0, 1], ArrowLeft: [-1, 0], KeyA: [-1, 0], ArrowRight: [1, 0], KeyD: [1, 0], Tab: e.shiftKey ? [-1, 0] : [1, 0] };
@@ -160,11 +177,21 @@ export class UI {
 
   pollGamepad(now) {
     const pad = [...(navigator.getGamepads?.() ?? [])].find(p => p?.connected);
-    if (!pad) return;
+    if (!pad) { if (this.padState.id) { this.padState.id = null; this.onGamepad?.(null); } return; }
+    if (this.padState.id !== pad.id) { this.padState.id = pad.id; this.onGamepad?.(pad); }
     const was = this.padState.buttons, is = pad.buttons.map(b => b.pressed);
     const edge = i => is[i] && !was[i];
     this.padState.buttons = is;
-    if (edge(9)) {
+    if (this.capture) {
+      // Ignore buttons already held when capture began (the one that opened it).
+      this.padState.captureBase ??= is.slice();
+      const pressed = is.findIndex((v, i) => v && !this.padState.captureBase[i]);
+      is.forEach((v, i) => { if (!v) this.padState.captureBase[i] = false; });
+      if (this.capture.kind === 'button' && pressed >= 0) this.endCapture(pressed);
+      else if (this.capture.kind === 'key' && pressed >= 0 && performance.now() - this.capture.since > 250) this.endCapture(null);
+      return;
+    }
+    if (this.pauseButtons().some(edge)) {
       if (this.modal) this.top?.back?.(this); else this.onPauseKey?.();
     }
     if (!this.modal) return;

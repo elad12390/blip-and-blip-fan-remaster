@@ -1682,7 +1682,7 @@ void Game::updateVictoryAndDefeat() {
 
     // Victoire ?
     //
-    if (rightAlignedOffset() >= vic_x && game_flag[vic_flag1] == vic_val1 &&
+    if (progressOffset() >= vic_x && game_flag[vic_flag1] == vic_val1 &&
         game_flag[vic_flag2] == vic_val2) {
         hold_fire = true;
         wait_for_victory += 1;
@@ -2244,11 +2244,19 @@ void Game::UpdateCollection(const T& xs) {
 //-----------------------------------------------------------------------------
 
 void Game::updateFlecheGo() {
-    go_.Update();
+    const bool was = go_.Showing();
+    // GO means "you can move on": never during a locked fight, a forced
+    // scroll, or at the end of the level (the original only checked idling).
+    bool enemiesLeft = false;
+    for (auto& e : list_ennemis)
+        if (e->count() && e->x > offset - 20 && e->x < offset + scr_w + 20 && e->y > -40 && e->y < 520) { enemiesLeft = true; break; }
+    const bool canAdvance = !scroll_locked && scroll_speed == 0 && !enemiesLeft && offset < level_size - scr_w;
+    if (canAdvance) go_.Update(); else go_.Reset();
     if (last_x_go_ != offset) {
         last_x_go_ = offset;
         go_.Leave();
     }
+    if (go_.Showing() != was) bb_push_state();
 }
 
 //-----------------------------------------------------------------------------

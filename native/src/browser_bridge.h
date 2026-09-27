@@ -3,6 +3,15 @@
 class Couille;
 extern int bb_mode, bb_part, bb_start_part, bb_player, bb_players;
 extern int bb_armor, bb_firepower, bb_supply;
+// 0 Easy, 1 Normal (original), 2 Hard, 3 Insane. Scales how many ordinary
+// enemies a stage spawns; bosses and scripted enemies are never touched.
+extern int bb_difficulty;
+// Percent of the original ordinary-enemy count for the current difficulty.
+int bb_enemy_percent();
+// How many copies of one authored ordinary spawn to create (0..n), using a
+// per-stage accumulator so the average matches the percentage exactly.
+int bb_spawn_copies();
+void bb_reset_spawn_accumulator();
 extern bool bb_running, bb_paused, bb_game_over, bb_completed, bb_in_game;
 int bb_input(int player, int bit);
 int bb_max_hp();

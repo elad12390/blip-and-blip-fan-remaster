@@ -28,7 +28,7 @@ public:
 
 	inline virtual bool aReveiller()
 	{
-		return x_activation <= (rightEdgeTriggered() ? eventOffset() : offset);
+		return x_activation <= (rightEdgeTriggered() ? progressOffset() : authoredOffset());
 	};
 
 	// Spawns and scenery trigger when the right screen edge reaches the spot

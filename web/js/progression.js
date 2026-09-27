@@ -1,3 +1,4 @@
+import { normalizeBindings } from './bindings.js';
 export const SAVE_KEY = 'blip-blop.browser.v1';
 export const PLAYABLE_PARTS = [1,3,5,7,9,10,12,13,15,17,19,21];
 export const HIGH_SCORE_LIMIT = 10;
@@ -34,7 +35,7 @@ export const UPGRADE_DEFS = [
   { id: 'supply', name: 'Care package', description: 'An extra cow bomb at the start of each level.', max: 3, baseCost: 18 },
 ];
 export function freshSave() {
-  return { version: 1, shards: 0, upgrades: { armor: 0, firepower: 0, supply: 0 }, deaths: 0, bestScore: 0, checkpoint: null, settledRuns: [], highScores: { original: [], roguelite: [] }, scoredRuns: { original: [], roguelite: [] }, settings: { graphics: 'enhanced', volume: 0.65, touch: 'auto', reducedMotion: false, handedness: 'right', controlSize: 'comfortable', joystick: 'floating', autoFire: false }, mode: 'original' };
+  return { version: 1, shards: 0, upgrades: { armor: 0, firepower: 0, supply: 0 }, deaths: 0, bestScore: 0, checkpoint: null, settledRuns: [], highScores: { original: [], roguelite: [] }, scoredRuns: { original: [], roguelite: [] }, difficulty: 1, bindings: normalizeBindings(null), settings: { graphics: 'enhanced', volume: 0.65, touch: 'auto', reducedMotion: false, handedness: 'right', controlSize: 'comfortable', joystick: 'floating', autoFire: false }, mode: 'original' };
 }
 export function normalizeSave(raw) {
   const out = freshSave();
@@ -62,6 +63,8 @@ export function normalizeSave(raw) {
   if (['comfortable', 'large'].includes(raw.settings?.controlSize)) out.settings.controlSize = raw.settings.controlSize;
   if (['floating', 'fixed'].includes(raw.settings?.joystick)) out.settings.joystick = raw.settings.joystick;
   out.settings.autoFire = raw.settings?.autoFire === true;
+  if ([0, 1, 2, 3].includes(raw.difficulty)) out.difficulty = raw.difficulty;
+  out.bindings = normalizeBindings(raw.bindings);
   out.settings.reducedMotion = raw.settings?.reducedMotion === true;
   return out;
 }

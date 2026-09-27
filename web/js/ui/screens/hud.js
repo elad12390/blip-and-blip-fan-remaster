@@ -5,7 +5,15 @@ import { iconButton } from '../components.js';
 
 // Gameplay HUD and touch controls. Not modal: gameplay input passes through.
 export class HudScreen {
-  constructor(model, touch) { this.model = model; this.touch = touch; this.modal = false; this.layoutKey = ''; this.banner = null; }
+  constructor(model, touch) { this.model = model; this.touch = touch; this.modal = false; this.layoutKey = ''; this.banner = null; this.banks = new Map(); }
+
+  // Dialogue portrait banks: rows of 100x100 heads, loaded on first use.
+  bank(name) {
+    if (!name) return null;
+    let image = this.banks.get(name);
+    if (!image) { image = new Image(); image.src = `assets/ui/rpg/${name.replace(/\.gfx$/i, '')}.png`; this.banks.set(name, image); }
+    return image.complete && image.naturalWidth ? image : null;
+  }
 
   showBanner(text) { this.banner = { text, born: performance.now() }; }
 
@@ -19,9 +27,14 @@ export class HudScreen {
 
   draw(ui, dt, now) {
     const m = this.model, state = m.state ?? {}, layout = this.layoutFor(ui);
-    const gameplay = !!state.inGame && state.frameIsGameplay !== false;
+    const dialogue = state.inGame && state.dialogue ? state.dialogue : null;
+    // Controls belong to the hero only while nobody is talking.
+    const gameplay = !!state.inGame && state.frameIsGameplay !== false && !dialogue;
     if (layout.deck) this.deck(ui, layout);
+    if (gameplay) this.goArrow(ui, layout, state, now);
+    if (gameplay) this.threats(ui, layout, state, now);
     if (gameplay) this.status(ui, layout, state);
+    if (dialogue) this.dialogue(ui, layout, dialogue, now);
     iconButton(ui, 'hud-pause', layout.pause.x, layout.pause.y, layout.pause.r, 'pause', null, { onDown: () => m.pause(), focusable: false });
     if (layout.touch) this.touchControls(ui, layout, state, gameplay);
     else if (gameplay) this.keyHints(ui, layout, now);
@@ -50,8 +63,9 @@ export class HudScreen {
     g.beginPath(); g.arc(px + 2, py + 5, pr + 3, 0, Math.PI * 2); g.fillStyle = '#0009'; g.fill();
     g.save(); g.beginPath(); g.arc(px, py, pr, 0, Math.PI * 2); g.clip();
     g.fillStyle = hero ? C.helmet : C.blip; g.fillRect(px - pr, py - pr, pr * 2, pr * 2);
+    // The 100px dialogue head fills the medallion without cropping the face.
     const [sx, sy, sw, sh] = SPRITES.portrait[hero];
-    g.drawImage(ui.art.portraits, sx, sy, sw, sh, px - pr * 1.25, py - pr * 1.05, pr * 2.5, pr * 2.5);
+    g.drawImage(ui.art.portraits, sx, sy, sw, sh, px - pr * 1.08, py - pr * 1.02, pr * 2.16, pr * 2.16);
     g.restore();
     g.beginPath(); g.arc(px, py, pr, 0, Math.PI * 2); g.lineWidth = 4.5; g.strokeStyle = C.ink; g.stroke();
     g.beginPath(); g.arc(px, py, pr - 4, 0, Math.PI * 2); g.lineWidth = 2.5; g.strokeStyle = hero ? C.helmet : C.bandana; g.stroke();
@@ -100,6 +114,80 @@ export class HudScreen {
       p.sprite(ui.art.misc, SPRITES.cow, cx + 8 * s, chip.y + 6 * s, s * .98, { outline: 1.5 });
       p.text(`X${Math.max(0, state.cows ?? 0)}`, cx + 88 * s, chip.y + 24 * s, 17 * s, { align: 'right', color: C.gold });
     }
+  }
+
+  // In-level conversations over the live world: the top speaker on the left,
+  // the bottom speaker on the right, as in the original screens.
+  dialogue(ui, layout, dialogue, now) {
+    const p = ui.paint, g = ui.ctx, m = this.model, game = layout.game;
+    g.fillStyle = '#0b081466'; g.fillRect(game.x, game.y, game.w, game.h);
+    const w = Math.min(game.w - 24, 760), x = game.x + (game.w - w) / 2;
+    const portrait = Math.max(64, Math.min(116, game.h * .24, w * .2));
+    const panelH = portrait + 24;
+    const topY = game.y + Math.max(layout.pause.y + layout.pause.r + 12, game.h * .1);
+    const bottomLimit = layout.touch && !layout.deck ? layout.confirm.y - 16 : game.y + game.h - 18;
+    const bottomY = Math.max(topY + panelH + 14, bottomLimit - panelH);
+    dialogue.panels.forEach((panel, i) => {
+      if (!panel) return;
+      const y = i === 0 ? topY : bottomY, left = i === 0;
+      const image = this.bank(panel.who === 'hero' ? 'rpg_bb.gfx' : dialogue.bank);
+      p.panel(x, y, w, panelH, { r: 20, grad: left ? [C.cream, C.paper] : ['#dfe8ff', '#aebfee'], ink: 4, shadow: 6, tilt: left ? -.6 : .6 });
+      const px = left ? x + 12 : x + w - 12 - portrait, py = y + 12;
+      p.rr(px, py, portrait, portrait, 14); g.fillStyle = panel.who === 'hero' ? C.blipDark : C.purpleDark; g.fill();
+      if (image && panel.image >= 0) {
+        g.save(); p.rr(px, py, portrait, portrait, 14); g.clip();
+        g.drawImage(image, 1 + panel.image * 102, 1, 100, 100, px, py, portrait, portrait);
+        g.restore();
+      }
+      p.rr(px, py, portrait, portrait, 14); g.lineWidth = 3.5; g.strokeStyle = C.ink; g.stroke();
+      const tx = left ? px + portrait + 16 : x + 18, tw = w - portrait - 46;
+      const size = Math.max(13, Math.min(24, panelH / 5.2, w / 34));
+      p.body(panel.text, tx, y + 24, { size, color: C.ink, shadow: false, maxWidth: tw, weight: 800, lineHeight: 1.3 });
+    });
+    if (!layout.touch) {
+      const pulse = .55 + .45 * Math.sin(now / 260);
+      g.save(); g.globalAlpha = pulse;
+      const lastY = dialogue.panels[1] ? bottomY : topY;
+      p.text('ENTER  CONTINUE', x + w - 8, lastY + panelH + 22, 15, { align: 'right', color: C.goldLight });
+      g.restore();
+    }
+    // Skip the whole conversation (the original Escape behaviour; Escape now pauses).
+    const sw = 92, sx = x + w - sw, sy = topY - 50;
+    const skip = ui.region('dialogue-skip', { x: sx, y: sy, w: sw, h: 38 }, { onDown: () => m.skipDialogue(), focusable: false });
+    p.button(sx, sy, sw, 38, 'SKIP', { top: '#e8dcc3', bottom: '#b9a680', size: 15, r: 12, pressed: skip.pressed });
+  }
+
+  // Narrow displays see part of the play window: pulse red chevrons at the
+  // edge an off-screen enemy is on, with a count.
+  threats(ui, layout, state, now) {
+    const [left = 0, right = 0] = state.threats ?? [];
+    const p = ui.paint, g = ui.ctx, game = layout.game, pulse = .65 + .35 * Math.sin(now / 160);
+    const s = Math.max(.8, Math.min(1.3, game.h / 420)), y = game.y + game.h * .58;
+    for (const [count, side] of [[left, -1], [right, 1]]) {
+      if (!count) continue;
+      const x = side < 0 ? game.x + 16 * s : game.x + game.w - 16 * s;
+      g.save(); g.globalAlpha = pulse; g.translate(x, y); g.scale(side * s, s);
+      g.beginPath(); g.moveTo(0, 0); g.lineTo(-18, -20); g.lineTo(-18, 20); g.closePath();
+      g.fillStyle = C.bandana; g.fill(); g.lineWidth = 3.5; g.strokeStyle = C.ink; g.stroke();
+      g.restore();
+      p.badge(x - side * 30 * s, y, 12 * s, String(count), C.ink);
+    }
+  }
+
+  // The original GO arrow sprite, sliding in at the right edge of the game view
+  // and bouncing like the original, whenever the engine asks the player to move on.
+  goArrow(ui, layout, state, now) {
+    if (state.go && !this.goSince) this.goSince = now;
+    if (!state.go) { this.goSince = 0; return; }
+    const g = ui.ctx, frames = SPRITES.go, frame = frames[Math.floor(now / 70) % frames.length];
+    const s = Math.max(.9, Math.min(1.6, layout.game.h / 300)), w = frame[2] * s, h = frame[3] * s;
+    const enter = Math.min(1, (now - this.goSince) / 350);
+    const bounce = Math.abs(Math.sin(now / 230)) * 22 * s;
+    const right = layout.game.x + layout.game.w - 18 * s - (layout.mirror ? 0 : 0);
+    const x = right - w - bounce + (1 - enter) * (w + 40), y = layout.game.y + layout.game.h * .42 - h / 2;
+    g.save(); g.shadowColor = '#000a'; g.shadowBlur = 8; g.shadowOffsetY = 4;
+    g.drawImage(ui.art.misc, frame[0], frame[1], frame[2], frame[3], x, y, w, h);
+    g.restore();
   }
 
   keyHints(ui, layout, now) {

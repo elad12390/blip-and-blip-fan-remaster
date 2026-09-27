@@ -19,6 +19,8 @@
 #include "event_gen_ennemi.h"
 #include "gen_ennemi_tmp.h"
 #include "gen_ennemi.h"
+#include "browser_bridge.h"
+#include <algorithm>
 
 void EventGenEnnemi::doEvent()
 {
@@ -33,8 +35,10 @@ void EventGenEnnemi::doEvent()
 	gen->x = x;
 	gen->y = y;
 	gen->sens = sens;
-	gen->periode = periode;
-	gen->capacite = capacite;
+	// Spawners emit proportionally more (or fewer) enemies, faster (or slower).
+	const int percent = bb_enemy_percent();
+	gen->periode = std::max(12, periode * 100 / percent);
+	gen->capacite = std::max(1, (capacite * percent + 50) / 100);
 
 	list_gen_ennemis.emplace_back(gen);
 }

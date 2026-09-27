@@ -3,6 +3,7 @@
 #include "ben_maths.h"
 #include "globals.h"
 #include <algorithm>
+#include "gpu_frame.h"
 
 // The original arrow animates x in 640-pixel screen space: it enters at -10,
 // rests at 640 while bouncing back to 540, and leaves until 800. Map that onto
@@ -62,7 +63,12 @@ class GoArrow {
         }
     }
 
+    // Arrow is out (coming or bouncing), for the browser HUD.
+    bool Showing() const { return phase_ == Phase::Coming || phase_ == Phase::Bouncing; }
+
     void Draw() {
+        // The browser HUD draws GO at the screen edge, clear of the camera.
+        if (bbgpu::enabled()) return;
         if (phase_ != Phase::No) {
             const Picture* pic = pbk_misc[81 + anim_step_ / kSpriteDuration];
             pic->BlitTo(backSurface, goArrowScreenX(x_, bb_view_width, pic->xSize(), pic->xSpot()), 150);

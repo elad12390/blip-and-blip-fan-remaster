@@ -3,6 +3,7 @@ import { MenuScreen } from './ui/screens/menu.js';
 import { HudScreen } from './ui/screens/hud.js';
 import { PauseScreen, DefeatScreen, CompleteScreen, LoadingScreen } from './ui/screens/overlays.js';
 import { WorkshopScreen, ScoresScreen, SettingsScreen, AboutScreen } from './ui/screens/sheets.js';
+import { bind, bindCoop, DEFAULT_BINDINGS, clone } from './bindings.js';
 
 const PART_NAMES = ['Briefing', 'Smurf Village I', 'Briefing', 'Smurf Village II', 'Briefing', 'Duck Hunt', 'Briefing', 'Care Bears I', 'Briefing', 'Care Bears II', 'Care Bears III', 'Briefing', 'Snorks I', 'Snorks II', 'Briefing', 'Lemmings', 'Briefing', 'Video Game World', 'Briefing', 'Mario and Luigi', 'Briefing', 'The Final Battle'];
 const newRunId = () => globalThis.crypto?.randomUUID?.() ?? `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
@@ -30,7 +31,7 @@ export class GameModel {
   // ---------- derived ----------
   get checkpointLabel() { const part = this.save.checkpoint?.part; return part ? `· ${PART_NAMES[part] ?? ''}`.toUpperCase() : ''; }
   coarsePointer() { return this.coarse.matches; }
-  touchVisible() { const t = this.save.settings.touch; return t === 'on' || (t === 'auto' && this.coarse.matches); }
+  touchVisible() { const t = this.save.settings.touch; return t === 'on' || (t === 'auto' && this.coarse.matches && !this.gamepadActive()); }
   upgradeCost(id) { return upgradeCost(this.save, id); }
   highScores(kind) { return getHighScores(this.save, kind); }
   safeArea() {
@@ -45,6 +46,24 @@ export class GameModel {
 
   // ---------- settings ----------
   setMode(mode) { this.mode = mode; this.save.mode = mode; this.persist(); }
+  get difficulty() { return this.save.difficulty; }
+  setDifficulty(level) { this.save.difficulty = level; this.persist(); }
+  get bindings() { return this.save.bindings; }
+  rebind(table, action, input) {
+    this.save.bindings = table === 'pad' ? bind(this.save.bindings, 'pad', action, input) : bindCoop(this.save.bindings, table, action, input);
+    this.persist(); this.input.setBindings(this.save.bindings);
+  }
+  resetBindings(table) {
+    const next = clone(this.save.bindings); next[table] = clone(DEFAULT_BINDINGS[table]);
+    this.save.bindings = next; this.persist(); this.input.setBindings(next);
+  }
+  // A connected controller replaces touch controls in Automatic mode.
+  gamepadActive() { return !!this.gamepad && this.input.lastDevice !== 'keyboard'; }
+  onGamepad(pad) {
+    const had = !!this.gamepad; this.gamepad = pad;
+    if (pad && !had) { this.input.lastDevice = 'gamepad'; this.ui.toast('Controller connected.'); }
+    else if (!pad && had) this.ui.toast('Controller disconnected.');
+  }
   setHero(hero) { this.hero = hero; }
   setPlayers(players) { this.players = players; }
   setSetting(key, value) { this.save.settings[key] = value; this.persist(); this.applySettings(); }
@@ -53,6 +72,7 @@ export class GameModel {
     this.renderer.mode = s.graphics; this.renderer.present();
     this.renderer.reducedMotion = s.reducedMotion || matchMedia('(prefers-reduced-motion: reduce)').matches;
     this.input.setAutoFire(s.autoFire);
+    this.input.setBindings(this.save.bindings);
     this.touch.configure({ joystick: s.joystick, radius: s.controlSize === 'large' ? 64 : 58 });
     this.engine.volume(s.volume);
   }
@@ -89,7 +109,7 @@ export class GameModel {
       if (attempt !== this.startAttempt || !this.playing) return;
       this.ui.remove(this.loading);
       this.input.coop = this.players === 2;
-      this.engine.start({ mode: this.mode, player: this.hero, part: checkpoint?.part ?? 0, upgrades: this.save.upgrades, players: this.players });
+      this.engine.start({ mode: this.mode, player: this.hero, part: checkpoint?.part ?? 0, upgrades: this.save.upgrades, players: this.players, difficulty: this.save.difficulty });
       this.engine.volume(this.save.settings.volume);
       this.engine.pause(false);
       this.input.enable(true);
@@ -117,6 +137,12 @@ export class GameModel {
     if (!this.playing || this.ended) return;
     while (this.ui.top && this.ui.top !== this.hud) this.ui.pop();
     this.paused = false; this.engine.pause(false); this.input.enable(true); this.gameCanvas.focus();
+  }
+
+  // The engine's own dialogue skip (original Escape key, bit 256), held briefly.
+  skipDialogue() {
+    this.input.set('dialogue-skip', 256);
+    setTimeout(() => this.input.clear('dialogue-skip'), 160);
   }
 
   togglePause() { if (this.paused) this.resume(); else this.pause(); }

@@ -131,3 +131,9 @@ test('desktop layout has no touch controls and keeps inventory off the floor', (
   assert.ok(l.weapon.y < 120, 'inventory sits in the top bar');
   assert.ok(l.weapon.x + 238 * l.weapon.scale < l.pause.x - l.pause.r, 'inventory does not cover pause');
 });
+
+test('narrow keyboard windows stack the inventory under the status block instead of over it', () => {
+  const l = computeLayout({ width: 390, height: 844, touch: false });
+  assert.ok(l.weapon.y > l.hud.y + 60 * l.hud.scale, 'below the portrait and health');
+  assert.ok(l.weapon.x + 238 * l.weapon.scale <= 390, 'on screen');
+});
