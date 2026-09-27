@@ -72,87 +72,6 @@ function browserHarness(t) {
   };
 }
 
-test('keyboard pause releases held controls and the same key resumes while input is disabled', t => {
-  const h = browserHarness(t), masks = [];
-  let pauses = 0;
-  const input = new Input(mask => masks.push(mask), {
-    onPause() { pauses++; input.enable(!input.active); },
-  });
-  input.enable(true);
-  h.win.dispatch('keydown', { code: 'ArrowRight' });
-  h.win.dispatch('keydown', { code: 'KeyJ' });
-  assert.equal(masks.at(-1), 2 | 16);
-
-  assert.equal(h.win.dispatch('keydown', { code: 'Escape' }).defaultPrevented, true);
-  assert.equal(input.active, false);
-  assert.equal(masks.at(-1), 0, 'pausing clears movement and fire');
-  h.win.dispatch('keydown', { code: 'Escape', repeat: true });
-  h.win.dispatch('keydown', { code: 'ArrowLeft' });
-  assert.equal(pauses, 1, 'holding pause does not toggle repeatedly');
-  assert.equal(masks.at(-1), 0, 'gameplay keys stay silent while paused');
-
-  h.win.dispatch('keyup', { code: 'Escape' });
-  h.win.dispatch('keydown', { code: 'Escape' });
-  assert.equal(pauses, 2);
-  assert.equal(input.active, true);
-  assert.equal(masks.at(-1), 0, 'resuming does not restore stale held controls');
-  h.win.dispatch('keydown', { code: 'KeyJ' });
-  assert.equal(masks.at(-1), 16);
-  h.win.dispatch('keydown', { code: 'KeyP' });
-  h.win.dispatch('keyup', { code: 'KeyP' });
-  h.win.dispatch('keydown', { code: 'KeyP' });
-  assert.equal(pauses, 4, 'the alternative pause binding resumes too');
-  assert.equal(input.active, true);
-});
-
-test('keyboard pause does not steal editing or open-dialog keystrokes', t => {
-  const h = browserHarness(t);
-  let pauses = 0;
-  new Input(() => {}, { onPause() { pauses++; } });
-  h.win.dispatch('keydown', { code: 'KeyP', target: { tagName: 'INPUT' } });
-  h.win.dispatch('keydown', { code: 'Escape', target: { tagName: 'SELECT' } });
-  h.setDialogOpen(true);
-  h.win.dispatch('keydown', { code: 'Escape' });
-  assert.equal(pauses, 0);
-  h.setDialogOpen(false);
-  h.win.dispatch('keydown', { code: 'Escape' });
-  assert.equal(pauses, 1);
-});
-
-test('gamepad Start is edge-triggered and can resume after gameplay polling is disabled', t => {
-  const h = browserHarness(t), masks = [];
-  const pad = { axes: [1, 0], buttons: Array.from({ length: 16 }, () => ({ pressed: false })) };
-  h.setPads([pad]);
-  let pauses = 0;
-  const input = new Input(mask => masks.push(mask), {
-    onPause() { pauses++; input.enable(!input.active); },
-  });
-  input.enable(true);
-  h.frame();
-  assert.equal(masks.at(-1), 2);
-  pad.buttons[9].pressed = true;
-  h.frame();
-  assert.equal(input.active, false);
-  assert.equal(masks.at(-1), 0);
-  h.frame();
-  assert.equal(pauses, 1, 'holding Start causes only one transition');
-  pad.buttons[9].pressed = false;
-  h.frame();
-  pad.axes[0] = 0;
-  pad.buttons[9].pressed = true;
-  h.frame();
-  assert.equal(pauses, 2);
-  assert.equal(input.active, true);
-  assert.equal(masks.at(-1), 0);
-  pad.buttons[9].pressed = false;
-  pad.buttons[2].pressed = true;
-  h.frame();
-  assert.equal(masks.at(-1), 16 | 128, 'X fires and confirms briefings');
-  h.setPads([]);
-  h.frame();
-  assert.equal(masks.at(-1), 0, 'disconnecting a firing gamepad releases fire');
-});
-
 test('focus loss releases both co-op players independently', t => {
   const h = browserHarness(t), p1 = [], p2 = [];
   const input = new Input(mask => p1.push(mask), { send2: mask => p2.push(mask) });
@@ -170,31 +89,6 @@ test('focus loss releases both co-op players independently', t => {
   h.win.dispatch('blur');
   assert.equal(p1.at(-1), 0);
   assert.equal(p2.at(-1), 0);
-});
-
-test('gamepad Start cannot resume a paused game behind an open modal', t => {
-  const h = browserHarness(t);
-  const pad = { axes: [0, 0], buttons: Array.from({ length: 16 }, () => ({ pressed: false })) };
-  h.setPads([pad]);
-  let pauses = 0;
-  const input = new Input(() => {}, {
-    onPause() { pauses++; input.enable(!input.active); },
-  });
-  input.enable(false);
-  h.setDialogOpen(true);
-  pad.buttons[9].pressed = true;
-  h.frame();
-  assert.equal(pauses, 0);
-  assert.equal(input.active, false);
-  h.setDialogOpen(false);
-  h.frame();
-  assert.equal(pauses, 0, 'closing the modal does not apply a stale held Start');
-  pad.buttons[9].pressed = false;
-  h.frame();
-  pad.buttons[9].pressed = true;
-  h.frame();
-  assert.equal(pauses, 1);
-  assert.equal(input.active, true);
 });
 
 test('two gamepads keep independent co-op controls and stable slots on disconnect', t => {
@@ -254,46 +148,22 @@ test('either co-op gamepad can confirm a briefing with A or X while retaining it
   assert.equal(p2.at(-1), 0);
 });
 
-test('either co-op Start pauses and resumes, simultaneous edges toggle only once', t => {
-  const h = browserHarness(t);
-  const pads = Array.from({ length: 2 }, () => ({ axes: [0, 0], buttons: Array.from({ length: 16 }, () => ({ pressed: false })) }));
-  h.setPads(pads);
-  let pauses = 0;
-  const input = new Input(() => {}, { onPause() { pauses++; input.enable(!input.active); } });
-  input.coop = true;
-  input.enable(true);
-  pads[0].buttons[9].pressed = pads[1].buttons[9].pressed = true;
-  h.frame();
-  assert.equal(pauses, 1);
-  assert.equal(input.active, false);
-  h.frame();
-  assert.equal(pauses, 1);
-  pads[1].buttons[9].pressed = false;
-  h.frame();
-  pads[1].buttons[9].pressed = true;
-  h.frame();
-  assert.equal(pauses, 2, 'P2 can resume while P1 still holds Start');
-  assert.equal(input.active, true);
-});
-
 test('gamepad polling cannot reassert either player while blurred, hidden or behind a modal', t => {
   const h = browserHarness(t), p1 = [], p2 = [];
   const pads = Array.from({ length: 2 }, () => ({ axes: [1, 0], buttons: Array.from({ length: 16 }, () => ({ pressed: false })) }));
   h.setPads(pads);
-  let pauses = 0;
-  const input = new Input(mask => p1.push(mask), { send2: mask => p2.push(mask), onPause() { pauses++; } });
+  let modal = false;
+  const input = new Input(mask => p1.push(mask), { send2: mask => p2.push(mask), blocked: () => modal });
   input.coop = true;
   input.enable(true);
   h.frame();
+  assert.equal(p1.at(-1), 2);
   h.win.dispatch('blur');
-  pads[1].buttons[9].pressed = true;
   h.frame();
   assert.equal(p1.at(-1), 0);
   assert.equal(p2.at(-1), 0);
-  assert.equal(pauses, 0);
   h.win.dispatch('focus');
   h.frame();
-  assert.equal(pauses, 0, 'focus restoration does not apply Start held in the background');
   assert.equal(p1.at(-1), 2);
   assert.equal(p2.at(-1), 2);
   h.doc.hidden = true;
@@ -302,31 +172,41 @@ test('gamepad polling cannot reassert either player while blurred, hidden or beh
   assert.equal(p1.at(-1), 0);
   assert.equal(p2.at(-1), 0);
   h.doc.hidden = false;
-  h.doc.dispatch('visibilitychange');
-  h.setDialogOpen(true);
-  pads[1].buttons[9].pressed = false;
+  modal = true;
   h.frame();
-  pads[1].buttons[9].pressed = true;
+  assert.equal(p1.at(-1), 0, 'an interface menu blocks gameplay input');
+  h.win.dispatch('keydown', { code: 'KeyD' });
+  assert.equal(p1.at(-1), 0, 'keys pressed under a menu are not retained');
+  modal = false;
   h.frame();
-  assert.equal(pauses, 0);
+  assert.equal(p1.at(-1), 2);
+  assert.equal(p2.at(-1), 2);
+});
+
+test('auto fire is added to player one only and never while blocked', t => {
+  const h = browserHarness(t), p1 = [], p2 = [];
+  let modal = false;
+  const input = new Input(mask => p1.push(mask), { send2: mask => p2.push(mask), blocked: () => modal });
+  input.coop = true;
+  input.enable(true);
+  input.setAutoFire(true);
+  assert.equal(p1.at(-1), 16);
+  assert.equal(p2.at(-1) ?? 0, 0);
+  modal = true; input.flush();
   assert.equal(p1.at(-1), 0);
-  assert.equal(p2.at(-1), 0);
-  h.setDialogOpen(false);
-  h.frame();
-  assert.equal(pauses, 0, 'closing a modal does not apply the second pad held Start');
+  input.enable(false); modal = false; input.flush();
+  assert.equal(p1.at(-1), 0, 'paused games never auto fire');
 });
 
 test('the second gamepad stays inactive in solo mode', t => {
   const h = browserHarness(t), p1 = [], p2 = [];
   const second = { axes: [1, 0], buttons: Array.from({ length: 16 }, () => ({ pressed: true })) };
   h.setPads([null, second]);
-  let pauses = 0;
-  const input = new Input(mask => p1.push(mask), { send2: mask => p2.push(mask), onPause() { pauses++; } });
+  const input = new Input(mask => p1.push(mask), { send2: mask => p2.push(mask) });
   input.enable(true);
   h.frame();
   assert.equal(p1.at(-1), 0);
-  assert.equal(p2.at(-1), 0);
-  assert.equal(pauses, 0);
+  assert.equal(p2.at(-1) ?? 0, 0);
 });
 
 test('an engine script download failure can retry with a new module and script', async t => {

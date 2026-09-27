@@ -20,7 +20,7 @@ void VehiculeHypo::updateUsed()
 		x -= SPEED;
 	}
 
-	if (ctrl->droite() && x < offset + 600 && !mur_opaque(x + SPEED, y)) {
+	if (ctrl->droite() && x < offset + (scr_w - 40) && !mur_opaque(x + SPEED, y)) {
 		x += SPEED;
 	}
 

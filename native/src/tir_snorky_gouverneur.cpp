@@ -38,7 +38,7 @@ void TirSnorkyGouverneur::update()
 	}
 
 
-	if (x < offset - 100 || x > offset + 740 || y > 580 || y < -100)
+	if (x < offset - 100 || x > offset + (scr_w + 100) || y > 580 || y < -100)
 		a_detruire = true;
 
 	//tombe();

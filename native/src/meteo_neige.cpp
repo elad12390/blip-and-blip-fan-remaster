@@ -28,7 +28,7 @@ void MeteoNeige::update() {
     } else if (y > 500) {
         a_detruire = true;
     } else if (xbase < offset - 10) {
-        if (!mur_opaque(offset + 640, 0))
+        if (!mur_opaque(offset + (scr_w), 0))
             xbase += 660;
         else
             a_detruire = true;

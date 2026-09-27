@@ -35,6 +35,8 @@ public:
 			return (game_flag[flag] == val);
 	};
 
+	bool rightEdgeTriggered() const override { return false; }
+
 	virtual void doEvent()
 	{
 		rpg_to_play = num;

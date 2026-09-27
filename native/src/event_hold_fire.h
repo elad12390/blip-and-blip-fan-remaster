@@ -26,6 +26,8 @@ public:
 	int		flag;
 	int		val;
 
+	bool rightEdgeTriggered() const override { return false; }
+
 	virtual void doEvent()
 	{
 		hold_fire = true;

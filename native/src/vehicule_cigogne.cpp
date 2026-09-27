@@ -25,7 +25,7 @@ void VehiculeCigogne::updateUsed()
 
 	can_be_used = false;
 	/*
-		if ( offset < level_size-640)
+		if ( offset < level_size - scr_w)
 			x += scroll_speed*2;
 
 		if ( ctrl->gauche() && x > offset+40 && !mur_opaque( x-SPEED, y))
@@ -33,7 +33,7 @@ void VehiculeCigogne::updateUsed()
 			x -= SPEED;
 		}
 
-		if ( ctrl->droite() && x < offset+600 && !mur_opaque( x+SPEED, y))
+		if ( ctrl->droite() && x < offset+(scr_w - 40) && !mur_opaque( x+SPEED, y))
 		{
 			x += SPEED;
 		}

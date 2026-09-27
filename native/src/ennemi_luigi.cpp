@@ -81,14 +81,14 @@ void EnnemiLuigi::onAvance()
 	if (x - speed < (xmin + 20) || mur_opaque(x - speed, y)) {
 		dir = SENS_DROITE;
 		speed = 1;
-	} else if (x + speed > offset + 600 || mur_opaque(x + speed, y)) {
+	} else if (x + speed > offset + (scr_w - 40) || mur_opaque(x + speed, y)) {
 		dir = SENS_GAUCHE;
 		speed = 1;
 	}
 
 	if (game_flag[0] >= 3) {
 		wait_for_attack++;
-	} else if (x < offset + 600) {
+	} else if (x < offset + (scr_w - 40)) {
 		game_flag[0] = 2;
 	}
 
@@ -231,7 +231,7 @@ void EnnemiLuigi::onAvance()
 	}
 
 	if (encaissement >= MULTIPLICATEUR_RECUL_SOL) {
-		if (x + encaissement / MULTIPLICATEUR_RECUL_SOL < offset + 620) {
+		if (x + encaissement / MULTIPLICATEUR_RECUL_SOL < offset + (scr_w - 20)) {
 			x += encaissement / MULTIPLICATEUR_RECUL_SOL;
 		}
 		/*else
@@ -273,7 +273,7 @@ void EnnemiLuigi::onAvance()
 			}
 			else
 			{
-				if (x + encaissement/100 < offset + 640)
+				if (x + encaissement/100 < offset + (scr_w))
 				{
 					marche(encaissement/100);
 				}
@@ -314,7 +314,7 @@ void EnnemiLuigi::onMeure()
 		tombe();
 		if (x - 3 < xmin || mur_opaque(x - 3, y)) {
 			dir = SENS_DROITE;
-		} else if (x + 3 > offset + 640 || mur_opaque(x + 3, y)) {
+		} else if (x + 3 > offset + (scr_w) || mur_opaque(x + 3, y)) {
 			dir = SENS_GAUCHE;
 		}
 		if (dir == SENS_DROITE) {
@@ -613,7 +613,7 @@ void EnnemiLuigi::onAttack()
 			}
 
 			//recul
-			if (x < offset + 610) {
+			if (x < offset + (scr_w - 30)) {
 				x += 1;
 			}
 		}
@@ -636,7 +636,7 @@ void EnnemiLuigi::onAttack()
 		onAvance();
 		return;
 	}
-	else if ( x + speed > offset + 640 || mur_opaque( x+speed, y))
+	else if ( x + speed > offset + (scr_w) || mur_opaque( x+speed, y))
 	{
 		etape=0;
 		ss_etape=0;
@@ -695,7 +695,7 @@ void EnnemiLuigi::onSaute()
 		speed = 1;
 	}
 
-	else if (/*(dir==SENS_DROITE)&&*/(x + speed > offset + 600 || mur_opaque(x + speed, y))) {
+	else if (/*(dir==SENS_DROITE)&&*/(x + speed > offset + (scr_w - 40) || mur_opaque(x + speed, y))) {
 		dir = SENS_GAUCHE;
 		speed = 1;
 	}
@@ -712,7 +712,7 @@ void EnnemiLuigi::onSaute()
 
 
 	if (dir == SENS_DROITE) {
-		if (x + speed < offset + 620)
+		if (x + speed < offset + (scr_w - 20))
 			x += speed;
 
 		if (dy < 0) {

@@ -25,6 +25,8 @@ public:
 
 	int		speed;
 
+	bool rightEdgeTriggered() const override { return false; }
+
 	virtual void doEvent()
 	{
 		scroll_speed = speed;

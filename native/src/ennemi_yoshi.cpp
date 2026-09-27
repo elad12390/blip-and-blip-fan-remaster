@@ -63,7 +63,7 @@ void EnnemiYoshi::onAvance()
 
 	//pour attaquer
 	wait_for_attack++;
-	if (wait_for_attack >= attack_delay && x <= offset + 640) {
+	if (wait_for_attack >= attack_delay && x <= offset + (scr_w)) {
 		wait_for_attack = 0;
 		attack_delay = 50 + rand() % 250;
 		/*if ((plat2(tete_turc->x,tete_turc->y)==plat2(x,y))
@@ -109,7 +109,7 @@ void EnnemiYoshi::onAvance()
 
 	if (x - YOSHI_SPEED < xmin || mur_opaque(x - YOSHI_SPEED, y)) {
 		dir = SENS_DROITE;
-	} else if (x + YOSHI_SPEED > offset + 640 || mur_opaque(x + YOSHI_SPEED, y)) {
+	} else if (x + YOSHI_SPEED > offset + (scr_w) || mur_opaque(x + YOSHI_SPEED, y)) {
 		dir = SENS_GAUCHE;
 	}
 

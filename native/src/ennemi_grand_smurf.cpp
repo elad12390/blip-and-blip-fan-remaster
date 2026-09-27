@@ -106,7 +106,7 @@ void EnnemiGrandSmurf::onAtata()
 
 		int x2 = x + dx;
 
-		if (!mur_opaque(x2, y) && x2 > offset + 50 && x2 < offset + 600)
+		if (!mur_opaque(x2, y) && x2 > offset + 50 && x2 < offset + (scr_w - 40))
 			x = x2;
 	}
 }
@@ -115,7 +115,7 @@ void EnnemiGrandSmurf::onAvance()
 {
 	int x2 = x + dx;
 
-	if (!mur_opaque(x2, y) && x2 > offset + 50 && x2 < offset + 600)
+	if (!mur_opaque(x2, y) && x2 > offset + 50 && x2 < offset + (scr_w - 40))
 		x = x2;
 
 	if (dx <= 0) {

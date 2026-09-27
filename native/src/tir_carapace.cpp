@@ -35,7 +35,7 @@ void TirCarapace::update()
 			dir = SENS_DROITE;
 			rebond = true;
 		}
-	} else if (/* x + CARAPACE_SPEED > offset + 640 ||*/ mur_opaque(x + CARAPACE_SPEED, y)) {
+	} else if (/* x + CARAPACE_SPEED > offset + (scr_w) ||*/ mur_opaque(x + CARAPACE_SPEED, y)) {
 		if (rebond) {
 			a_detruire = true;
 		} else {
@@ -49,7 +49,7 @@ void TirCarapace::update()
 	} else {
 		x += CARAPACE_SPEED;
 	}
-	if (x < offset - 100 || x > offset + 700 || y > 520 || y < -50)
+	if (x < offset - 100 || x > offset + (scr_w + 60) || y > 520 || y < -50)
 		a_detruire = true;
 
 	colFromPic();

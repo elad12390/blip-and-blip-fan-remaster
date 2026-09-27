@@ -82,6 +82,19 @@ extern SDL::Surface  *	videoA;			// cache video
 
 
 extern int			offset;				// offset courant du scroll
+// Width of the play window in world units. The original was a fixed 640-pixel
+// screen; the browser sets it from the display shape, and locked encounters
+// (authored for 640) ease back to 640. Everything bounded by the screen edge
+// (walls, turnarounds, culling, spawns, scroll limits) uses it.
+extern int			scr_w;
+constexpr int		kAuthoredScreenWidth = 640;
+// The scroll offset whose right screen edge matches the original 640-wide
+// screen's right edge. Level events and victory are keyed to it so enemies
+// still enter just beyond the visible edge at any width.
+inline int rightAlignedOffset() { return offset + scr_w - kAuthoredScreenWidth; }
+// Narrow windows keep the original left-edge timing (anything spawned then is
+// still off-screen to the right); wide windows use the right-edge timing.
+inline int eventOffset() { return offset > rightAlignedOffset() ? offset : rightAlignedOffset(); }
 extern int			scr_offset;			// = offset % 640
 
 extern int			scroll_speed;

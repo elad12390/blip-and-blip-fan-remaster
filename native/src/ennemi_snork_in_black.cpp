@@ -112,7 +112,7 @@ void EnnemiSnorkInBlack::onAvance()
 
 		pic = pbk_ennemis[anime(anim_snork_in_black_marche_droite, 4, 4)];
 
-		if (mur_opaque(x + SNORK_IN_BLACK_SPEED, y) || (x + SNORK_IN_BLACK_SPEED > offset + 640))
+		if (mur_opaque(x + SNORK_IN_BLACK_SPEED, y) || (x + SNORK_IN_BLACK_SPEED > offset + (scr_w)))
 			dir = SENS_GAUCHE;
 	}
 

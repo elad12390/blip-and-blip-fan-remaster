@@ -97,9 +97,9 @@ void EnnemiBisouAuto::onMeure()
 	int gox;
 
 	if (dx <= 0)
-		gox = offset - 640;
+		gox = offset - scr_w;
 	else
-		gox = offset + 900;
+		gox = offset + (scr_w + 260);
 
 
 	if (gox < x && dx > -SPEED) dx -= ACCELX;

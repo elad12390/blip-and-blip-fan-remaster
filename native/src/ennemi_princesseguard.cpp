@@ -91,7 +91,7 @@ void EnnemiPrincesseguard::onAvance()
 		{
 			dir = SENS_DROITE;
 		}
-		else if ( x + GUARD_SPEED > offset + 640 || mur_opaque( x+GUARD_SPEED, y))
+		else if ( x + GUARD_SPEED > offset + (scr_w) || mur_opaque( x+GUARD_SPEED, y))
 		{
 			dir = SENS_GAUCHE;
 		}

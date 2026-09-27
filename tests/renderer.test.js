@@ -15,7 +15,7 @@ function fallbackRenderer(t) {
     get width() { return width; }, set width(value) { width = value; screen.drawn = null; },
     get height() { return height; }, set height(value) { height = value; screen.drawn = null; },
     getBoundingClientRect: () => box,
-    getContext: kind => kind === 'webgl' ? null : screen,
+    getContext: kind => kind === '2d' ? screen : null,
     addEventListener() {}, removeEventListener() {},
   };
   globalThis.window = { devicePixelRatio: 1, addEventListener() {}, removeEventListener() {} };

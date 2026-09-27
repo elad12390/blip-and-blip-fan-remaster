@@ -73,7 +73,7 @@ void EnnemiSnorkyGouverneur::onAvance()
 	}
 
 	wait_for_shoot++;
-	if ((wait_for_shoot > shoot_delay) && ((dir == SENS_DROITE && x > offset + 40) || (dir == SENS_GAUCHE && x < offset + 600))) {
+	if ((wait_for_shoot > shoot_delay) && ((dir == SENS_DROITE && x > offset + 40) || (dir == SENS_GAUCHE && x < offset + (scr_w - 40)))) {
 		wait_for_shoot = 0;
 		shoot_delay = 50 + rand() % 200;
 		etape = 0;
@@ -96,7 +96,7 @@ void EnnemiSnorkyGouverneur::onAvance()
 
 		pic = pbk_ennemis[anime(anim_gouverneur_marche_droite, 6, 4)];
 
-		if (mur_opaque(x + GOUVERNEUR_SPEED, y) || (x + GOUVERNEUR_SPEED > offset + 640))
+		if (mur_opaque(x + GOUVERNEUR_SPEED, y) || (x + GOUVERNEUR_SPEED > offset + (scr_w)))
 			dir = SENS_GAUCHE;
 	}
 

@@ -4,6 +4,7 @@
 #include <SDL2/SDL.h>
 
 #include "browser_material.h"
+#include "gpu_frame.h"
 #include "sdl_pixelformat.h"
 #include "sdl_surfaceinfo.h"
 
@@ -54,6 +55,7 @@ namespace SDL
             if (!replacement) return false;
             SDL_FillRect(replacement, nullptr, SDL_MapRGBA(replacement->format,0,0,0,255));
             SDL_BlitSurface(surface, nullptr, replacement, nullptr);
+            bbgpu::forget(surface);
             bb_material_forget(surface);
             SDL_FreeSurface(surface);
             surface = replacement;
@@ -62,6 +64,18 @@ namespace SDL
 		inline void BltFast(int x, int y, SDL::Surface *surf /*This is the Source Surface! Damn, DD!*/, Rect *r, int flags=0)
 		{
                         (void)flags;
+			if (bbgpu::isTarget(surface)) {
+				if (r) {
+					const SDL_Rect source{r->left, r->top, r->right - r->left, r->bottom - r->top};
+					bbgpu::blit(surf->Get(), &source, x, y);
+				} else bbgpu::blit(surf->Get(), nullptr, x, y);
+				return;
+			}
+			{
+				const SDL_Rect written = r ? SDL_Rect{x, y, r->right - r->left, r->bottom - r->top}
+				                           : SDL_Rect{x, y, surf->Get()->w, surf->Get()->h};
+				bbgpu::touched(surface, &written);
+			}
 			/*static int test_i = 1;
 			char buf[128];
 			sprintf(buf, "test/%d.bmp", test_i);
@@ -118,6 +132,12 @@ namespace SDL
 				rect->w = src->right - src->left;
 				rect->h = src->bottom - src->top;
 			}
+			if (bbgpu::isTarget(surface)) {
+				if (surf) bbgpu::blit(surf->Get(), rect, dest ? dest->left : 0, dest ? dest->top : 0);
+				else bbgpu::fill(rect, pad ? pad->dwFillColor : 0xFF000000);
+				delete rect;
+				return;
+			}
 			if (dest)
 			{
 				position = new SDL_Rect;
@@ -126,6 +146,7 @@ namespace SDL
 				position->w = dest->right - dest->left;
 				position->h = dest->bottom - dest->top;
 			}
+			bbgpu::touched(surface, surf ? position : rect);
 			if (surf)
 			{
 				bb_material_blit(surf->Get(), rect, surface, position);
@@ -192,6 +213,7 @@ namespace SDL
 
 		inline void Release()
 		{
+			bbgpu::forget(surface);
 			bb_material_forget(surface);
 			SDL_FreeSurface(surface);
 			delete this; // FIXME: OH MY THAT'S DANGEROUS
@@ -203,6 +225,17 @@ namespace SDL
 
 		inline void FillRect(Rect *r,unsigned int color)
 		{
+			if (bbgpu::isTarget(surface)) {
+				if (r) {
+					const SDL_Rect area{r->left, r->top, r->right - r->left, r->bottom - r->top};
+					bbgpu::fill(&area, color);
+				} else bbgpu::fill(nullptr, color);
+				return;
+			}
+			if (r) {
+				const SDL_Rect area{r->left, r->top, r->right - r->left, r->bottom - r->top};
+				bbgpu::touched(surface, &area);
+			} else bbgpu::touched(surface, nullptr);
 			if (!r)
 			{
 				SDL_FillRect(surface, 0, color);
@@ -241,6 +274,7 @@ namespace SDL
 		void Unlock()
 		{
 			SDL_UnlockSurface(surface);
+			bbgpu::touched(surface, nullptr);
 			bb_material_forget(surface);
 		}
 

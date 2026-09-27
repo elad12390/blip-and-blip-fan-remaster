@@ -39,7 +39,7 @@ void TirGateau::update()
 
 	x += dx;
 
-	if (mur_opaque(x, y) || x < offset - 100 || x > offset + 700 || y > 520 || y < -50)
+	if (mur_opaque(x, y) || x < offset - 100 || x > offset + (scr_w + 60) || y > 520 || y < -50)
 		a_detruire = true;
 
 	colFromPic();

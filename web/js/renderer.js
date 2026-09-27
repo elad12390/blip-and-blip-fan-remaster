@@ -1,4 +1,5 @@
-import { measureViewport, fitFrame } from './viewport.js';
+import { measureViewport, fitFrame, gameplayView, followCameraY } from './viewport.js';
+import { GpuCompositor } from './gpu/compositor.js';
 
 const VERTEX = `attribute vec2 position; varying vec2 uv; void main(){ uv=vec2(position.x*.5+.5,.5-position.y*.5); gl_Position=vec4(position,0.,1.); }`;
 const FRAGMENT = `
@@ -88,13 +89,29 @@ export class Renderer {
     };
     this.handleContextRestored = () => {
       this.contextLost = false;
+      if (this.compositor) {
+        this.compositor.init();
+        this.compositor.resize(this.canvas.width, this.canvas.height);
+        this.present();
+        this.onContextState?.('restored');
+        return;
+      }
       this.initializeGL();
       this.uploadRetainedFrame();
       this.present();
       this.onContextState?.('restored');
     };
-    this.gl = canvas.getContext('webgl', { alpha: false, antialias: false, preserveDrawingBuffer: false, powerPreference: 'high-performance' });
-    if (this.gl) {
+    const contextOptions = { alpha: false, antialias: false, preserveDrawingBuffer: false, powerPreference: 'high-performance' };
+    // WebGL2 renders gameplay from native draw commands. Without it the engine
+    // keeps rasterising on the CPU and the legacy full-frame path below is used.
+    const gl2 = canvas.getContext('webgl2', contextOptions);
+    if (gl2) {
+      try { this.compositor = new GpuCompositor(gl2); } catch (error) { console.warn('GPU compositor unavailable', error); }
+    }
+    if (this.compositor) {
+      canvas.addEventListener('webglcontextlost', this.handleContextLost);
+      canvas.addEventListener('webglcontextrestored', this.handleContextRestored);
+    } else if ((this.gl = canvas.getContext('webgl', contextOptions))) {
       this.initializeGL();
       canvas.addEventListener('webglcontextlost', this.handleContextLost);
       canvas.addEventListener('webglcontextrestored', this.handleContextRestored);
@@ -137,6 +154,7 @@ export class Renderer {
     this.viewport = next;
     if (this.canvas.width !== next.pixelWidth) this.canvas.width = next.pixelWidth;
     if (this.canvas.height !== next.pixelHeight) this.canvas.height = next.pixelHeight;
+    this.compositor?.resize(next.pixelWidth, next.pixelHeight);
     if (!previous || Object.keys(next).some(key => next[key] !== previous[key])) this._onViewportChange?.(next);
     // Changing the canvas backing size clears its drawing buffer. Native code
     // may be paused, or may correctly ignore a DPR-only camera update. Reuse
@@ -209,7 +227,9 @@ export class Renderer {
     }
   }
 
-  draw(module, ptr, width = 640, height = 480, pitch = width * 4, depthPtr = 0) {
+  // Native passes the gameplay flag and hero screen position with each frame.
+  // Older cores omit them; the 200 ms state poll is only that fallback.
+  draw(module, ptr, width = 640, height = 480, pitch = width * 4, depthPtr = 0, gameplay, playerX, playerY) {
     if (this.disposed || !ptr || !module.HEAPU8 || width <= 0 || height <= 0) return;
     // ResizeObserver normally does this. The first native frame may precede its
     // callback after revealing a previously hidden game view.
@@ -229,14 +249,52 @@ export class Renderer {
       if (this.retainedDepth?.length !== length) this.retainedDepth = new Uint8Array(length);
       this.retainedDepth.set(module.HEAPU8.subarray(depthPtr, depthPtr + length));
     }
-    this.retainedFrame = { width, height, hasDepth: !!depthPtr };
+    const player = playerX >= 0 && playerY >= 0 ? { x: playerX, y: playerY } : null;
+    this.retainedFrame = { kind: 'pixels', width, height, hasDepth: !!depthPtr, gameplay: gameplay === undefined ? undefined : !!gameplay, player };
     this.uploadRetainedFrame();
     this.present();
     this.frames++;
   }
 
+  get supportsCommands() { return !!this.compositor; }
+
+  // A gameplay frame as native draw commands (WebGL2 only). The command words
+  // are retained so a paused resize or graphics-mode change can redraw them.
+  drawCommands(module, ptr, count, width, height, playerX, playerY) {
+    if (this.disposed || !this.compositor || !module.HEAP32) return;
+    if (!this.viewport) this.resize();
+    const words = module.HEAP32.slice(ptr >> 2, (ptr >> 2) + count);
+    const player = playerX >= 0 && playerY >= 0 ? { x: playerX, y: playerY } : null;
+    const now = performance.now();
+    const view = gameplayView(width, this.canvas.width, this.canvas.height);
+    // Snap after story screens or a resize; otherwise glide after the hero.
+    const snap = this.retainedFrame?.kind !== 'commands' || this.cameraViewKey !== `${this.canvas.width}x${this.canvas.height}`;
+    this.cameraY = followCameraY(snap ? undefined : this.cameraY, player?.y ?? 240, view, (now - (this.cameraTime ?? now)) / 1000);
+    this.cameraTime = now;
+    this.cameraViewKey = `${this.canvas.width}x${this.canvas.height}`;
+    this.retainedFrame = { kind: 'commands', module, words, width, height, gameplay: true, player };
+    this.present();
+    this.frames++;
+  }
+
+  forgetSurfaces(module, ptr, count) {
+    this.compositor?.forget(module.HEAP32.subarray(ptr >> 2, (ptr >> 2) + count));
+  }
+
+  isGameplayFrame() {
+    return this.retainedFrame?.gameplay ?? !!(this.state.frameIsGameplay ?? this.state.inGame);
+  }
+
+  // Hero position in the pixels of the retained frame, for the local lamp.
+  lampPosition() {
+    const { width = 640, height = 480, player, gameplay } = this.retainedFrame ?? {};
+    if (player) return player;
+    if (gameplay === undefined && Number.isFinite(this.state.x) && Number.isFinite(this.state.y)) return { x: this.state.x, y: this.state.y };
+    return { x: width / 2, y: height / 2 };
+  }
+
   uploadRetainedFrame() {
-    if (!this.gl || this.contextLost || !this.retainedFrame) return;
+    if (!this.gl || this.contextLost || !this.retainedFrame || this.retainedFrame.kind !== 'pixels') return;
     const { width, height, hasDepth } = this.retainedFrame;
     this.uploadTexture(0, width, height, this.retainedColor);
     if (hasDepth) this.uploadTexture(1, width, height, this.retainedDepth);
@@ -244,6 +302,7 @@ export class Renderer {
 
   present() {
     if (this.disposed || this.contextLost || !this.retainedFrame) return;
+    if (this.compositor) return this.presentGpu();
     const { width, height, hasDepth } = this.retainedFrame;
     const displayWidth = this.canvas.width, displayHeight = this.canvas.height;
     const fit = fitFrame(width, height, displayWidth, displayHeight);
@@ -271,7 +330,8 @@ export class Renderer {
       this.filterMode = this.mode;
     }
     gl.uniform2f(u.texel, 1 / width, 1 / height);
-    gl.uniform2f(u.player, (this.state.x ?? width / 2) / width, (this.state.y ?? height / 2) / height);
+    const lamp = this.lampPosition();
+    gl.uniform2f(u.player, lamp.x / width, lamp.y / height);
     gl.uniform4f(u.frameRect, fit.x / displayWidth, fit.y / displayHeight, fit.width / displayWidth, fit.height / displayHeight);
     const cover = Math.max(displayWidth / width, displayHeight / height);
     gl.uniform2f(u.coverScale, displayWidth / (width * cover), displayHeight / (height * cover));
@@ -280,9 +340,26 @@ export class Renderer {
     gl.uniform1f(u.enhanced, this.mode === 'original' ? 0 : 1);
     gl.uniform1f(u.depthView, this.mode === 'depth' ? 1 : 0);
     gl.uniform1f(u.hasDepth, hasDepth ? 1 : 0);
-    gl.uniform1f(u.gameplay, (this.state.frameIsGameplay ?? this.state.inGame) ? 1 : 0);
+    gl.uniform1f(u.gameplay, this.isGameplayFrame() ? 1 : 0);
     gl.uniform1f(u.flash, !this.reducedMotion && this.fire && performance.now() % 110 < 32 ? .7 : 0);
     gl.drawArrays(gl.TRIANGLES, 0, 6);
+  }
+
+  presentGpu() {
+    const compositor = this.compositor, frame = this.retainedFrame;
+    compositor.mode = this.mode;
+    if (frame.kind === 'commands') {
+      const view = gameplayView(frame.width, this.canvas.width, this.canvas.height);
+      view.cameraY = Math.min(view.maxCameraY, Math.max(0, this.cameraY ?? 0));
+      compositor.drawCommands(frame.module.HEAPU8, frame.words, frame.width, frame.height, view);
+    }
+    else compositor.drawPixels(this.retainedColor, frame.hasDepth ? this.retainedDepth : null, frame.width, frame.height);
+    this.frame = { sourceWidth: frame.width, sourceHeight: frame.height, ...compositor.fit };
+    compositor.present({
+      gameplay: this.isGameplayFrame(),
+      player: this.lampPosition(),
+      flash: !this.reducedMotion && this.fire && performance.now() % 110 < 32 ? .7 : 0,
+    });
   }
 
   destroy() {

@@ -40,7 +40,7 @@ void TirNuage::onCreation()
 	if (dir == SENS_DROITE) {
 		x += SPEED;
 
-		if (x > offset + 600)
+		if (x > offset + (scr_w - 40))
 			dir = SENS_GAUCHE;
 	} else {
 		x -= SPEED;
@@ -106,7 +106,7 @@ void TirNuage::onNormal()
 	if (dir == SENS_DROITE) {
 		x += SPEED;
 
-		if (x > offset + 600)
+		if (x > offset + (scr_w - 40))
 			dir = SENS_GAUCHE;
 	} else {
 		x -= SPEED;

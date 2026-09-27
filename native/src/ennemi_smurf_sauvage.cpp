@@ -127,9 +127,9 @@ void EnnemiSmurfSauvage::update()
 				sbk_niveau.play(17);
 
 				if (rand() % 2 == 0)
-					x = offset + 320 - rand() % 150;
+					x = offset + (scr_w / 2) - rand() % 150;
 				else
-					x = offset + 320 + rand() % 150;
+					x = offset + (scr_w / 2) + rand() % 150;
 
 				int j = 100 + rand() % 140;
 

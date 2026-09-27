@@ -2,6 +2,19 @@
 
 #include "ben_maths.h"
 #include "globals.h"
+#include <algorithm>
+
+// The original arrow animates x in 640-pixel screen space: it enters at -10,
+// rests at 640 while bouncing back to 540, and leaves until 800. Map that onto
+// the real right edge so it enters and exits off screen at any width.
+inline int goArrowScreenX(int authoredX, int width, int spriteWidth, int spotX) {
+    const int start = -(spriteWidth - spotX) - 10, end = width + spotX + 10;
+    const int bounce = std::min(width, 640) * 100 / 640;
+    authoredX = std::clamp(authoredX, -10, 800);
+    if (authoredX <= 540) return start + (authoredX + 10) * (width - bounce - start) / 550;
+    if (authoredX <= 640) return width - (640 - authoredX) * bounce / 100;
+    return width + (authoredX - 640) * (end - width) / 160;
+}
 
 class GoArrow {
     enum class Phase { Coming, Bouncing, Leaving, No };
@@ -51,8 +64,8 @@ class GoArrow {
 
     void Draw() {
         if (phase_ != Phase::No) {
-            pbk_misc[81 + anim_step_ / kSpriteDuration]->BlitTo(
-                backSurface, x_-640+bb_view_width, 150);
+            const Picture* pic = pbk_misc[81 + anim_step_ / kSpriteDuration];
+            pic->BlitTo(backSurface, goArrowScreenX(x_, bb_view_width, pic->xSize(), pic->xSpot()), 150);
         }
     }
 

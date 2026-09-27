@@ -59,7 +59,7 @@ void TirBBLaser::setDir(int d)
 
 		case 2:		// Droite
 
-			while (nx > offset - 5 && nx < offset + 645 && !mur_opaque(nx, ny))
+			while (nx > offset - 5 && nx < offset + (scr_w + 5) && !mur_opaque(nx, ny))
 				nx += 8;
 
 			largeur = nx - x;
@@ -90,7 +90,7 @@ void TirBBLaser::setDir(int d)
 
 		case 6:		// Gauche
 
-			while (nx > offset - 5 && nx < offset + 645 && !mur_opaque(nx, ny))
+			while (nx > offset - 5 && nx < offset + (scr_w + 5) && !mur_opaque(nx, ny))
 				nx -= 8;
 
 			largeur = x - nx;
@@ -145,7 +145,7 @@ void TirBBLaser::affiche()
 
 		case 1:				// Bas/droite ---------------------------
 
-			while (nx > offset - 20 && nx < offset + 660 &&
+			while (nx > offset - 20 && nx < offset + (scr_w + 20) &&
 			        ny > -50 && ny < 500 && !mur_opaque(nx, ny)) {
 				draw(nx, ny, pbk_bb[144 + etape]);
 				nx += 8;
@@ -173,7 +173,7 @@ void TirBBLaser::affiche()
 
 		case 3:				// Haut/droite --------------------------
 
-			while (nx > offset - 20 && nx < offset + 660 &&
+			while (nx > offset - 20 && nx < offset + (scr_w + 20) &&
 			        ny > -20 && ny < 500 && !mur_opaque(nx, ny)) {
 				draw(nx, ny, pbk_bb[148 + etape]);
 				nx += 8;
@@ -203,7 +203,7 @@ void TirBBLaser::affiche()
 
 		case 5:				// Haut/gauche --------------------------
 
-			while (nx > offset - 20 && nx < offset + 660 &&
+			while (nx > offset - 20 && nx < offset + (scr_w + 20) &&
 			        ny > -20 && ny < 500 && !mur_opaque(nx, ny)) {
 				draw(nx, ny, pbk_bb[144 + etape]);
 				nx -= 8;
@@ -231,7 +231,7 @@ void TirBBLaser::affiche()
 
 		case 7:				// Bas/gauche ---------------------------
 
-			while (nx > offset - 20 && nx < offset + 660 &&
+			while (nx > offset - 20 && nx < offset + (scr_w + 20) &&
 			        ny > -50 && ny < 500 && !mur_opaque(nx, ny)) {
 				draw(nx, ny, pbk_bb[148 + etape]);
 				nx -= 8;

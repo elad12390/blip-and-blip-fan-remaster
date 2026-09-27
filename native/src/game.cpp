@@ -58,6 +58,7 @@
 #include "explosion.h"
 #include "fic_events.h"
 #include "game.h"
+#include "gpu_frame.h"
 #include "gen_bonus.h"
 #include "gen_ennemi.h"
 #include "globals.h"
@@ -685,6 +686,7 @@ bool Game::chargeNiveau(const char* nom_niveau) {
         strcpy(buffer2, "data/");
         strcat(buffer2, buffer);
 
+        snprintf(bb_rpg_bank, sizeof(bb_rpg_bank), "%s", buffer);
         if (!pbk_rpg.loadGFX(buffer2, mem_flag)) {
             debug << "Game::chargeNiveau() -> Cannot load " << buffer2
                   << " as RPG GFX\n";
@@ -1041,6 +1043,7 @@ void Game::updateAll() {
     */
 
     manageMsg();  // Fucking windaube!!!
+    bb_update_play_width();
 
     if (checkRestore()) update_regulator_.Skip();
 
@@ -1122,7 +1125,8 @@ void Game::updateAll() {
 //-----------------------------------------------------------------------------
 
 void Game::drawAll(bool flip) {
-    bb_prepare_frame(bb_in_game && rpg_to_play==-1);
+    // With the browser interface, dialogue is drawn over the live GPU world.
+    bb_prepare_frame(bb_in_game && (rpg_to_play==-1 || bbgpu::enabled()));
     manageMsg();  // Fucking windaube!!!
 
     if (checkRestore()) update_regulator_.Skip();
@@ -1628,8 +1632,8 @@ void Game::updateTeteTurc() {
     static int ntete_turc = 0;
 
     if (list_joueurs.empty()) {
-        dummyPlayer.x = offset + 320;
-        dummyPlayer.y = y_plat[0][offset + 320];
+        dummyPlayer.x = offset + (scr_w / 2);
+        dummyPlayer.y = y_plat[0][offset + (scr_w / 2)];
         tete_turc = &dummyPlayer;
         return;
     }
@@ -1659,6 +1663,7 @@ void Game::updateRPG() {
     rpg.stopPlay();
     in.waitClean();
     rpg_to_play = -1;
+    bb_push_state();
     update_regulator_.Skip();
 }
 
@@ -1677,7 +1682,7 @@ void Game::updateVictoryAndDefeat() {
 
     // Victoire ?
     //
-    if (offset >= vic_x && game_flag[vic_flag1] == vic_val1 &&
+    if (rightAlignedOffset() >= vic_x && game_flag[vic_flag1] == vic_val1 &&
         game_flag[vic_flag2] == vic_val2) {
         hold_fire = true;
         wait_for_victory += 1;
@@ -1857,6 +1862,12 @@ void Game::showPE(bool bonus, bool fuckOff) {
     int xbasep2;
     bool showp2;
 
+    // The results screen darkens a snapshot of the final stage frame. That
+    // frame may have been rendered by the GPU, so rasterise it again here.
+    {
+        bbgpu::ForceCpu cpuFrame;
+        drawAll(false);
+    }
     systemSurface->BltFast(
         0, 0, backSurface, NULL, DDBLTFAST_NOCOLORKEY | DDBLTFAST_WAIT);
 
@@ -2185,7 +2196,7 @@ void Game::updateMeteo() {
             int d = rand() % 3;
 
             flocon->a_detruire = false;
-            flocon->xbase = offset + rand() % 800;
+            flocon->xbase = offset + rand() % (scr_w + 160);
             flocon->y = rand() % 480 - 500;
 
             if (d <= 1)
@@ -2209,7 +2220,7 @@ void Game::updateMeteo() {
             int d = rand() % 4;
 
             goutte->a_detruire = false;
-            goutte->x = offset + rand() % 800;
+            goutte->x = offset + rand() % (scr_w + 160);
             goutte->y = rand() % 480 - 480;
             goutte->pic = pbk_misc[65 + d];
             goutte->dy = 7 + d * 2;
@@ -2253,6 +2264,7 @@ void Game::drawDeformation() {
     // The original two-pixel water bands use a small horizontal sine shift.
     // Never self-blit overlapping RGBA pixels: SDL may alpha-blend them in place.
     // One immutable color/depth snapshot makes every row independent of writes.
+    if(bbgpu::recording()){bbgpu::warp(phi_deform,5);return;}
     const int height=backSurface->Get()->h;
     std::vector<int> offsets(height);
     int phi=phi_deform;

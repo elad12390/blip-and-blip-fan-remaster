@@ -101,7 +101,7 @@ void EnnemiBisouChaman::onTele()
 		if (etape == 8) {
 			int new_pos;
 
-			if (tete_turc->x > offset + 320) {
+			if (tete_turc->x > offset + (scr_w / 2)) {
 				new_pos = 2;
 			} else {
 				if (tete_turc->y < 280)
@@ -128,7 +128,7 @@ void EnnemiBisouChaman::onTele()
 	}
 
 	if (etape <= 7) {
-		if (x < offset + 320) {
+		if (x < offset + (scr_w / 2)) {
 			pic = pbk_ennemis[316 + etape];
 			dir = SENS_DROITE;
 		} else {
@@ -137,7 +137,7 @@ void EnnemiBisouChaman::onTele()
 		}
 	} else if (etape <= 10) {
 		if (ss_etape % 2 == 0) {
-			if (x < offset + 320) {
+			if (x < offset + (scr_w / 2)) {
 				pic = pbk_ennemis[323];
 				dir = SENS_DROITE;
 			} else {
@@ -148,7 +148,7 @@ void EnnemiBisouChaman::onTele()
 			pic = NULL;
 		}
 	} else {
-		if (x < offset + 320) {
+		if (x < offset + (scr_w / 2)) {
 			pic = pbk_ennemis[323 - (etape - 11)];
 			dir = SENS_DROITE;
 		} else {
@@ -324,7 +324,7 @@ void EnnemiBisouChaman::onAvance()
 	}
 
 
-	if (x < offset + 320) {
+	if (x < offset + (scr_w / 2)) {
 		pic = pbk_ennemis[316];
 		dir = SENS_DROITE;
 	} else {

@@ -67,7 +67,7 @@ void EnnemiPrincesse::onAvance()
 
 	//pour marcher
 
-	/*if (x + PRINCESSE_SPEED >offset+640)
+	/*if (x + PRINCESSE_SPEED >offset+(scr_w))
 	{
 		x -=50;
 	}*/
@@ -77,7 +77,7 @@ void EnnemiPrincesse::onAvance()
 		dir = SENS_DROITE;
 		speed=1;
 	}
-	else if ( x + speed > offset + 640 || mur_opaque( x+speed, y))
+	else if ( x + speed > offset + (scr_w) || mur_opaque( x+speed, y))
 	{
 		dir = SENS_GAUCHE;
 		speed=1;

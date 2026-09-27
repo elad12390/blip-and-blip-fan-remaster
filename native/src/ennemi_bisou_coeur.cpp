@@ -54,7 +54,7 @@ void EnnemiBisouCoeur::onAvance()
 	} else {
 		x += SPEED;
 
-		if (mur_opaque(x, y) || x > offset + 600)
+		if (mur_opaque(x, y) || x > offset + (scr_w - 40))
 			dir = SENS_GAUCHE;
 
 		pic = pbk_ennemis[anime(anim_droite, 6, 7)];

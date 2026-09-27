@@ -41,7 +41,7 @@ void FondPoissonRouge::update()
 	}
 
 
-	if ((x < offset - 100) || (x > offset + 740)) {
+	if ((x < offset - 100) || (x > offset + (scr_w + 100))) {
 		a_detruire = true;
 	}
 
@@ -72,7 +72,7 @@ void FondPoissonViolet::update()
 	}
 
 
-	if ((x < offset - 100) || (x > offset + 740)) {
+	if ((x < offset - 100) || (x > offset + (scr_w + 100))) {
 		a_detruire = true;
 	}
 
@@ -102,7 +102,7 @@ void FondPoissonRougeCamoufle::update()
 	}
 
 
-	if ((x < offset - 100) || (x > offset + 740)) {
+	if ((x < offset - 100) || (x > offset + (scr_w + 100))) {
 		a_detruire = true;
 	}
 
@@ -133,7 +133,7 @@ void FondPoissonVioletCamoufle::update()
 	}
 
 
-	if ((x < offset - 100) || (x > offset + 740)) {
+	if ((x < offset - 100) || (x > offset + (scr_w + 100))) {
 		a_detruire = true;
 	}
 

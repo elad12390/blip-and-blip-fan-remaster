@@ -22,6 +22,8 @@
 #include "txt_data.h"
 #include "couille.h"
 #include "scroll.h"
+#include "gpu_frame.h"
+#include "browser_bridge.h"
 
 
 RPGPlayer::RPGPlayer() : focus(0), key_released(false), skiped(false)
@@ -123,6 +125,11 @@ bool RPGPlayer::drawScene(SDL::Surface * surf)
 	if (wait_.is_zero()) {
 		not_finished = updateScene();
         }
+
+	// The browser interface presents dialogue itself over the live, responsive
+	// world; the engine keeps only the script, timing and input.
+	if (bbgpu::enabled())
+		return not_finished;
 
 	// Assombrissement
 	//
@@ -234,6 +241,7 @@ bool RPGPlayer::updateScene()
 				time_.Reset();
 				wait_.Reset(std::stoi(buffer2_));
 				ready_to_draw = true;
+				bb_push_state();
 			} else if (buffer1_ == "flag") {
 				// Flag
 
@@ -280,3 +288,33 @@ void RPGPlayer::error(const std::string& err_msg)
 
 
 
+
+static void appendJsonString(std::string& out, const std::string& text)
+{
+	// Text banks are Latin-1; emit every non-ASCII byte as its code point.
+	static const char hex[] = "0123456789abcdef";
+	out += '"';
+	for (unsigned char c : text) {
+		if (c == '"' || c == '\\') { out += '\\'; out += static_cast<char>(c); }
+		else if (c < 0x20 || c >= 0x80) { out += "\\u00"; out += hex[c >> 4]; out += hex[c & 15]; }
+		else out += static_cast<char>(c);
+	}
+	out += '"';
+}
+
+void RPGPlayer::describe(std::string& out) const
+{
+	out += "[";
+	for (int i = 0; i < 2; i++) {
+		if (i) out += ",";
+		const bool visible = nimage[i] >= 0 && pic_tab[i] != NULL && nimage[i] < pic_tab[i]->getSize();
+		const bool hasText = ntxt[i] >= 0 && ntxt[i] < static_cast<int>(txt_data.size());
+		if (!visible && !hasText) { out += "null"; continue; }
+		out += "{\"who\":\"";
+		out += id[i] == ID_JOUEUR ? "hero" : "enemy";
+		out += "\",\"image\":" + std::to_string(visible ? nimage[i] : -1) + ",\"text\":";
+		appendJsonString(out, hasText ? txt_data[ntxt[i]] : std::string());
+		out += "}";
+	}
+	out += "]";
+}

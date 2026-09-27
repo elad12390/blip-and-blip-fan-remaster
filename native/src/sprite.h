@@ -100,7 +100,7 @@ public:
 
 	inline virtual void updateADetruire()
 	{
-		if (x < offset - 250 || x > offset + 900 || y < -200 || y > 600)
+		if (x < offset - 250 || x > offset + (scr_w + 260) || y < -200 || y > 600)
 			a_detruire = true;
 	};
 

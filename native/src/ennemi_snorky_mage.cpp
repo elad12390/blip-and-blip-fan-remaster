@@ -71,7 +71,7 @@ void EnnemiSnorkyMage::onAvance()
 
 
 	wait_for_shoot++;
-	if	((tete_turc != NULL) && (wait_for_shoot > shoot_delay) && ((dir == SENS_DROITE && x > offset + 30) || (dir == SENS_GAUCHE && x < offset + 610)))
+	if	((tete_turc != NULL) && (wait_for_shoot > shoot_delay) && ((dir == SENS_DROITE && x > offset + 30) || (dir == SENS_GAUCHE && x < offset + (scr_w - 30))))
 
 	{
 		int dif_y = tete_turc->y - y;
@@ -118,7 +118,7 @@ void EnnemiSnorkyMage::onAvance()
 	} else {
 		x += SNORKY_MAGE_SPEED;
 
-		if (mur_opaque(x + SNORKY_MAGE_SPEED, y) || (x + SNORKY_MAGE_SPEED > offset + 640))
+		if (mur_opaque(x + SNORKY_MAGE_SPEED, y) || (x + SNORKY_MAGE_SPEED > offset + (scr_w)))
 			dir = SENS_GAUCHE;
 	}
 

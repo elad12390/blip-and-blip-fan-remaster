@@ -101,6 +101,9 @@ protected:
 	Couille *	player2;
 
 	RPGPlayer	rpg;
+public:
+	const RPGPlayer& rpgPlayer() const { return rpg; }
+protected:
 
         GoArrow go_;
         int last_x_go_;

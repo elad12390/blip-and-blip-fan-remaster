@@ -47,6 +47,6 @@ void GenEnnemiTMP::update()
 			a_detruire = true;
 	}
 
-	if ((sens == SENS_DROITE && x < offset - 200) || (sens == SENS_GAUCHE && x < offset + 690))
+	if ((sens == SENS_DROITE && x < offset - 200) || (sens == SENS_GAUCHE && x < offset + (scr_w + 50)))
 		a_detruire = true;
 }

@@ -44,7 +44,7 @@ void EnnemiYoshiDCA::onAvance()
 	tombe();
 	//pour attaquer
 	wait_for_attack++;
-	if (wait_for_attack >= attack_delay && x <= offset + 640) {
+	if (wait_for_attack >= attack_delay && x <= offset + (scr_w)) {
 		wait_for_attack = 0;
 		attack_delay = 50 + rand() % 150;
 		if (tete_turc->x > x) {

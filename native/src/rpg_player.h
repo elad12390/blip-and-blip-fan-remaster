@@ -57,4 +57,6 @@ public:
 	void stopPlay();
 	bool read();
 	void error(const std::string& msg);
+	// JSON object describing the visible panels (browser interface).
+	void describe(std::string& out) const;
 };

@@ -90,7 +90,7 @@ void EnnemiSmurf::onAvance()
 	//
 	if (x - speed < xmin || mur_opaque(x - speed, y))
 		dir = SENS_DROITE;
-	else if (x + speed > offset + 640 || mur_opaque(x + speed, y))
+	else if (x + speed > offset + (scr_w) || mur_opaque(x + speed, y))
 		dir = SENS_GAUCHE;
 
 	if (dir == SENS_DROITE) {

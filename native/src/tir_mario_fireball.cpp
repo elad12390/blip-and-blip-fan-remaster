@@ -31,7 +31,7 @@ TirMarioFireball::TirMarioFireball(int vx): speed_etape(0)
 void TirMarioFireball::update()
 {
 
-	if (x < offset - 100 || x > offset + 700 || y > 520 || y < -50)
+	if (x < offset - 100 || x > offset + (scr_w + 60) || y > 520 || y < -50)
 		a_detruire = true;
 
 	speed_etape++;

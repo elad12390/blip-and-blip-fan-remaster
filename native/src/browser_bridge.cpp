@@ -3,10 +3,15 @@
 #include "globals.h"
 #include "input.h"
 #include "cine_player.h"
+#include "gpu_frame.h"
 #include <SDL2/SDL_mixer.h>
 #include <algorithm>
 #include <cstdio>
+#include <cstdlib>
 #include <cstring>
+#include <vector>
+#include <string>
+#include "rpg_player.h"
 extern Game game;
 int bb_mode=0, bb_part=0, bb_start_part=0, bb_player=0, bb_players=1;
 int bb_armor=0, bb_firepower=0, bb_supply=0;
@@ -15,32 +20,70 @@ int bb_view_width=640, bb_view_height=480, bb_camera_x=0;
 bool bb_gameplay_frame=false;
 static int requestedWidth=640;
 
+// The living player the lamp follows: P1 first, then P2.
+static Couille* focusPlayer(){
+    auto* p=game.browserPlayer(0);auto* p2=game.browserPlayer(1);
+    if(p && p->nb_life>0)return p;
+    if(p2 && p2->nb_life>0)return p2;
+    return nullptr;
+}
+
+static int targetPlayWidth(){
+    // Locked encounters and boss arenas are authored for the 640 screen.
+    int target=scroll_locked?kAuthoredScreenWidth:requestedWidth;
+    if(level_size>0)target=std::min(target,level_size);
+    return target;
+}
+
+// Called once per simulation tick: resizing or entering a locked encounter
+// eases the play window (and so the camera zoom) instead of snapping it.
+void bb_update_play_width(){
+    constexpr int kStep=8;
+    const int target=targetPlayWidth();
+    scr_w=scr_w<target?std::min(target,scr_w+kStep):std::max(target,scr_w-kStep);
+}
+
 void bb_prepare_frame(bool gameplay) {
     bb_gameplay_frame=gameplay;
-    const int width=gameplay?requestedWidth:640;
+    // The camera is the play window itself: what is visible is exactly where
+    // the heroes can go and where enemies turn around, spawn and despawn.
+    const int width=gameplay?scr_w:kAuthoredScreenWidth;
     if(backSurface && backSurface->Resize(width,480)) {
         bb_view_width=width;bb_view_height=480;
         if(primSurface)primSurface->Resize(width,480);
         if(systemSurface)systemSurface->Resize(width,480);
     }
-    if(!gameplay){bb_camera_x=offset;return;}
-    // Narrow screens track the hero inside an authored locked encounter; wide
-    // screens reveal the real surrounding world. Nothing is stretched/cropped.
-    auto* p=game.browserPlayer(0);auto* p2=game.browserPlayer(1);
-    int center=p?p->x:offset+320;
-    if(p2 && p2->nb_life>0 && bb_view_width>=640 && p && p->nb_life>0)center=(p->x+p2->x)/2;
-    else if((!p || p->nb_life<=0) && p2)center=p2->x;
-    bb_camera_x=std::clamp(center-bb_view_width*45/100,0,std::max(0,level_size-bb_view_width));
+    bbgpu::beginFrame(gameplay && backSurface?backSurface->Get():nullptr);
+    bb_camera_x=offset;
 }
+
 void bb_present_frame() {
     if(!backSurface)return;
     SDL_Surface* surface=backSurface->Get();
+    if(bbgpu::forgottenCount()){
+        EM_ASM({if(Module.onGpuForget)Module.onGpuForget($0,$1);},bbgpu::forgotten(),bbgpu::forgottenCount());
+        bbgpu::clearForgotten();
+    }
+    if(bbgpu::recording()){
+        Couille* focus=focusPlayer();
+        EM_ASM({if(Module.onCommands)Module.onCommands($0,$1,$2,$3,$4,$5);},bbgpu::commands(),bbgpu::commandCount(),
+          surface->w,surface->h,focus?focus->x-bb_camera_x:-1,focus?focus->y:-1);
+        bbgpu::endFrame();
+        return;
+    }
+    bbgpu::endFrame();
     unsigned char* depth=bb_material_pixels(surface);
-    EM_ASM({if(Module.onFrame)Module.onFrame($0,$1,$2,$3,$4);},surface->pixels,surface->w,surface->h,surface->pitch,depth);
+    // The lamp needs the hero's position in *this* frame. The 200 ms state poll
+    // lagged behind every step and jump once the camera stopped gluing to him.
+    Couille* focus=bb_gameplay_frame?focusPlayer():nullptr;
+    EM_ASM({if(Module.onFrame)Module.onFrame($0,$1,$2,$3,$4,$5,$6,$7);},surface->pixels,surface->w,surface->h,surface->pitch,depth,
+      bb_gameplay_frame?1:0,focus?focus->x-bb_camera_x:-1,focus?focus->y:-1);
 }
 static int masks[2]={0,0}, pending=0, damageRemainder=0;
 static char currentLevel[200]="Ready";
-static char stateBuffer[2048];
+static char stateBuffer[1536];
+char bb_rpg_bank[32]="";
+static std::string stateJson;
 int bb_input(int player,int bit){return (masks[player]& (1<<bit))!=0;}
 int bb_max_hp(){return 5+(bb_mode?bb_armor:0);}
 int bb_bonus_damage(int base){
@@ -56,13 +99,15 @@ void bb_yield(){
 extern "C" {
 EMSCRIPTEN_KEEPALIVE void bb_set_viewport(int width,int height){
     if(width<=0 || height<=0)return;
-    const int nextWidth=(int)std::clamp<long long>((long long)width*480/height,240,2560);
+    const int nextWidth=(int)std::clamp<long long>((long long)width*480/height,240,1600);
     if(requestedWidth==nextWidth)return;
     requestedWidth=nextWidth;
     // A paused game has no simulation ticks, but rotation must still redraw.
     // This path does not yield and never enters another Asyncify suspension.
-    if(bb_in_game && bb_paused && rpg_to_play==-1){game.drawAll(false);bb_present_frame();}
+    if(bb_in_game && bb_paused && (rpg_to_play==-1 || bbgpu::enabled())){game.drawAll(false);bb_present_frame();}
 }
+EMSCRIPTEN_KEEPALIVE void bb_set_gpu(int enabled){bbgpu::setEnabled(enabled!=0);}
+EMSCRIPTEN_KEEPALIVE void bb_gpu_invalidate(){bbgpu::invalidateAll();}
 EMSCRIPTEN_KEEPALIVE void bb_set_input(int mask){masks[0]=mask;}
 EMSCRIPTEN_KEEPALIVE void bb_set_input2(int mask){masks[1]=mask;}
 EMSCRIPTEN_KEEPALIVE void bb_set_players(int count){bb_players=count==2?2:1;}
@@ -77,13 +122,25 @@ EMSCRIPTEN_KEEPALIVE void bb_start(int mode,int player,int part){
 EMSCRIPTEN_KEEPALIVE const char* bb_state_json(){
     Couille* p=game.browserPlayer(0);Couille* p2=game.browserPlayer(1);
     snprintf(stateBuffer,sizeof(stateBuffer),
-      "{\"inGame\":%s,\"running\":%s,\"paused\":%s,\"mode\":\"%s\",\"part\":%d,\"level\":\"%s\",\"player\":%d,\"players\":%d,\"x\":%d,\"y\":%d,\"hp\":%d,\"maxHp\":%d,\"lives\":%d,\"weapon\":%d,\"ammo\":%d,\"cows\":%d,\"score\":%d,\"kills\":%d,\"offset\":%d,\"cameraX\":%d,\"viewportWidth\":%d,\"viewportHeight\":%d,\"frameIsGameplay\":%s,\"nativeHud\":false,\"bonusTimer\":%d,\"gameOver\":%s,\"completed\":%s,\"firing\":%s,\"player2\":{\"x\":%d,\"y\":%d,\"hp\":%d,\"lives\":%d,\"weapon\":%d,\"ammo\":%d,\"cows\":%d}}",
+      "{\"inGame\":%s,\"running\":%s,\"paused\":%s,\"mode\":\"%s\",\"part\":%d,\"level\":\"%s\",\"player\":%d,\"players\":%d,\"x\":%d,\"y\":%d,\"hp\":%d,\"maxHp\":%d,\"lives\":%d,\"weapon\":%d,\"ammo\":%d,\"cows\":%d,\"score\":%d,\"kills\":%d,\"offset\":%d,\"cameraX\":%d,\"viewportWidth\":%d,\"viewportHeight\":%d,\"playLeft\":%d,\"playRight\":%d,\"frameIsGameplay\":%s,\"locked\":%s,\"nativeHud\":false,\"bonusTimer\":%d,\"gameOver\":%s,\"completed\":%s,\"firing\":%s,\"player2\":{\"x\":%d,\"y\":%d,\"hp\":%d,\"lives\":%d,\"weapon\":%d,\"ammo\":%d,\"cows\":%d}}",
       bb_in_game?"true":"false",bb_running?"true":"false",bb_paused?"true":"false",bb_mode?"roguelite":"original",bb_part,currentLevel,bb_player,bb_players,
       p?p->x-bb_camera_x:0,p?p->y:0,p?p->pv:0,bb_max_hp(),p?p->nb_life:0,p?p->id_arme:0,p?p->ammo:0,p?p->nb_cow_bomb:0,
-      (p?p->getScore():0)+(p2?p2->getScore():0),game_flag[FLAG_NB_KILL],offset,bb_camera_x,bb_view_width,bb_view_height,bb_gameplay_frame?"true":"false",game_flag[FLAG_TIMER],bb_game_over?"true":"false",bb_completed?"true":"false",p&&p->tire?"true":"false",
+      (p?p->getScore():0)+(p2?p2->getScore():0),game_flag[FLAG_NB_KILL],offset,bb_camera_x,bb_view_width,bb_view_height,0,bb_view_width,bb_gameplay_frame?"true":"false",scroll_locked?"true":"false",game_flag[FLAG_TIMER],bb_game_over?"true":"false",bb_completed?"true":"false",p&&p->tire?"true":"false",
       p2?p2->x-bb_camera_x:0,p2?p2->y:0,p2?p2->pv:0,p2?p2->nb_life:0,p2?p2->id_arme:0,p2?p2->ammo:0,p2?p2->nb_cow_bomb:0);
-    return stateBuffer;
+    stateJson.assign(stateBuffer,strlen(stateBuffer)-1);
+    stateJson+=",\"dialogue\":";
+    if(bb_in_game && rpg_to_play!=-1){
+        stateJson+="{\"bank\":\"";stateJson+=bb_rpg_bank;stateJson+="\",\"panels\":";
+        game.rpgPlayer().describe(stateJson);
+        stateJson+="}";
+    }else stateJson+="null";
+    stateJson+="}";
+    return stateJson.c_str();
 }
+}
+void bb_push_state(){
+    if(app_killed || pending)return;
+    EM_ASM({if(Module.onState)Module.onState(UTF8ToString($0));},bb_state_json());
 }
 void bb_checkpoint(const char* level){
     if(app_killed || pending)return;
@@ -92,6 +149,7 @@ void bb_checkpoint(const char* level){
     EM_ASM({if(Module.onCheckpoint)Module.onCheckpoint(UTF8ToString($0));},bb_state_json());
 }
 void bb_level_begin(Couille* p1,Couille* p2){
+    scr_w=targetPlayWidth();
     if(bb_mode){for(auto* p:{p1,p2})if(p && p->nb_life>0){p->pv=bb_max_hp();p->nb_cow_bomb=std::max(p->nb_cow_bomb,1+bb_supply);}}
 }
 void bb_death(){

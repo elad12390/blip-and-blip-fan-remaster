@@ -28,7 +28,16 @@ public:
 
 	inline virtual bool aReveiller()
 	{
-		return (x_activation <= offset);
+		return x_activation <= (rightEdgeTriggered() ? eventOffset() : offset);
+	};
+
+	// Spawns and scenery trigger when the right screen edge reaches the spot
+	// the original screen's edge did. Scroll locks, scroll speed, flags, hold
+	// fire, dialogue and music keep their original left-edge timing because
+	// they are tied to where the camera itself stops.
+	inline virtual bool rightEdgeTriggered() const
+	{
+		return true;
 	};
 
 	inline virtual bool aActiver()

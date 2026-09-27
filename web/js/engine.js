@@ -4,8 +4,8 @@
 const releaseVersion=new URL(import.meta.url).searchParams.get('v');
 const resourceURL=path=>releaseVersion?`${path}?v=${encodeURIComponent(releaseVersion)}`:path;
 export class Engine {
-  constructor({ onFrame, onState, onCheckpoint, onDeath, onComplete, onProgress, onError }) {
-    Object.assign(this,{onFrame,onState,onCheckpoint,onDeath,onComplete,onProgress,onError});
+  constructor({ onFrame, onCommands, onGpuForget, gpu=()=>false, onState, onCheckpoint, onDeath, onComplete, onProgress, onError }) {
+    Object.assign(this,{onFrame,onCommands,onGpuForget,gpu,onState,onCheckpoint,onDeath,onComplete,onProgress,onError});
   }
   async load() {
     if(this.promise)return this.promise;
@@ -21,11 +21,13 @@ export class Engine {
         setStatus:message=>this.onProgress?.(message),
         monitorRunDependencies:left=>this.onProgress?.(left?`Preparing ${left} game resources…`:'Starting engine…'),
         onFrame:(...args)=>this.onFrame?.(module,...args),
+        onCommands:(...args)=>this.onCommands?.(module,...args),
+        onGpuForget:(...args)=>this.onGpuForget?.(module,...args),
         onCheckpoint:state=>this.onCheckpoint?.(this.parse(state)),
         onDeath:state=>this.onDeath?.(this.parse(state)),
         onComplete:state=>this.onComplete?.(this.parse(state)),
         onState:state=>{this.state=this.parse(state);this.onState?.(this.state);},
-        onRuntimeInitialized:async()=>{try{if(failed)return;this.module=module;await this.loadResources(module);if(failed||this.module!==module)return;this.applyViewport();this.ready=true;resolve(this);}catch(error){fail(error);}},
+        onRuntimeInitialized:async()=>{try{if(failed)return;this.module=module;await this.loadResources(module);if(failed||this.module!==module)return;module._bb_set_gpu?.(this.gpu()?1:0);this.applyViewport();this.ready=true;resolve(this);}catch(error){fail(error);}},
         onAbort:reason=>{const error=Error(`Game engine stopped: ${reason}`);if(this.running)this.onError?.(error);fail(error);},
       };
       const script=document.createElement('script');script.src=resourceURL('core/blipblop.js');script.onerror=()=>fail(Error('The game engine could not be downloaded. Check your connection and retry.'));document.head.append(script);
@@ -105,7 +107,7 @@ export class Engine {
   input(mask){this.module?._bb_set_input?.(mask);}
   setViewport(width,height=480){
     if(!Number.isFinite(width)||!Number.isFinite(height)||width<=0||height<=0)return;
-    this.viewport={width:Math.max(240,Math.min(2560,Math.round(width/height*480))),height:480};
+    this.viewport={width:Math.max(240,Math.min(1600,Math.round(width/height*480))),height:480};
     this.applyViewport();
   }
   applyViewport(){if(this.viewport)this.module?._bb_set_viewport?.(this.viewport.width,this.viewport.height);}

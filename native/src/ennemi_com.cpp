@@ -40,7 +40,7 @@ void EnnemiCOM::onAvance()
 	//
 	if (x - 1 < offset || mur_opaque(x - 1, y))
 		dir = SENS_DROITE;
-	else if (x + 1 > offset + 640 || mur_opaque(x + 1, y))
+	else if (x + 1 > offset + (scr_w) || mur_opaque(x + 1, y))
 		dir = SENS_GAUCHE;
 
 	if (dir == SENS_DROITE)

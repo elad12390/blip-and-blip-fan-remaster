@@ -131,7 +131,7 @@ void EnnemiMario::onAvance()
 	if (x - speed < xmin || mur_opaque(x - speed, y)) {
 		dir = SENS_DROITE;
 		speed = 1;
-	} else if (x + speed > offset + 600 || mur_opaque(x + speed, y)) {
+	} else if (x + speed > offset + (scr_w - 40) || mur_opaque(x + speed, y)) {
 		dir = SENS_GAUCHE;
 		speed = 1;
 	}
@@ -208,7 +208,7 @@ void EnnemiMario::onAvance()
 
 				case 4:
 					if (dir == SENS_DROITE) {
-						attack_etape = 1 + (offset + 640 - x) / 100;
+						attack_etape = 1 + (offset + (scr_w) - x) / 100;
 					} else {
 						attack_etape = 1 + (x - offset) / 100;
 					}
@@ -367,7 +367,7 @@ void EnnemiMario::onCharge()
 		onAvance();
 		return;
 	}
-	else if ( x + speed > offset + 640 || mur_opaque( x+speed, y))
+	else if ( x + speed > offset + (scr_w) || mur_opaque( x+speed, y))
 	{
 		dir = SENS_GAUCHE;
 		speed=1;
@@ -423,7 +423,7 @@ void EnnemiMario::onSaute()
 		speed = 1;
 	}
 
-	else if ((dir == SENS_DROITE) && (x + speed > offset + 640 || mur_opaque(x + speed, y))) {
+	else if ((dir == SENS_DROITE) && (x + speed > offset + (scr_w) || mur_opaque(x + speed, y))) {
 		dir = SENS_GAUCHE;
 		speed = 1;
 	}
@@ -826,10 +826,10 @@ void EnnemiMario::onRafaleverticaledouble()
 {
 	switch (attack_phase) {
 		case 0:
-			if ((dir == SENS_DROITE) && (x + (attack_etape + 1) * 100 + 20 > offset + 620)) {
+			if ((dir == SENS_DROITE) && (x + (attack_etape + 1) * 100 + 20 > offset + (scr_w - 20))) {
 				attack_phase = 1;
 				attack_ss_etape = 0;
-				attack_etape = 1 + (offset + 640 - x) / 100;
+				attack_etape = 1 + (offset + (scr_w) - x) / 100;
 			} else if ((dir == SENS_GAUCHE) && (x - (attack_etape + 1) * 100 - 20 < offset + 20)) {
 				attack_phase = 1;
 				attack_ss_etape = 0;
@@ -884,7 +884,7 @@ void EnnemiMario::onRafaleverticaleinverser()
 
 			list_tirs_ennemis.emplace_back(tir);
 		} else {
-			int x_cible = offset + 640 - attack_etape * 100 - rand() % 20;
+			int x_cible = offset + (scr_w) - attack_etape * 100 - rand() % 20;
 			if (x_cible > x - 20) {
 				etape = 0;
 				ss_etape = 0;
@@ -964,7 +964,7 @@ void EnnemiMario::onRafaleberserker()
 			if (dir == SENS_DROITE) {
 				marche(speed);
 				pic = pbk_ennemis[anime(anim_mario_marche_droite, 4, 16 - (3 * speed))];
-				if (x > offset + 600) {
+				if (x > offset + (scr_w - 40)) {
 					fireball = true;
 					attack_phase = 1;
 					speed = 1;
@@ -984,7 +984,7 @@ void EnnemiMario::onRafaleberserker()
 			break;
 
 		case 1:
-			if ((dir == SENS_DROITE) && (x + (attack_etape + 1) * 100 + 20 > offset + 620)) {
+			if ((dir == SENS_DROITE) && (x + (attack_etape + 1) * 100 + 20 > offset + (scr_w - 20))) {
 				attack_phase = 2;
 			} else if ((dir == SENS_GAUCHE) && (x - (attack_etape + 1) * 100 - 20 < offset + 20)) {
 				attack_phase = 2;
@@ -1008,7 +1008,7 @@ void EnnemiMario::onRafaleberserker()
 			if (y < 0) {
 				if (dir == SENS_DROITE) {
 					dir = SENS_GAUCHE;
-					x = offset + 600;
+					x = offset + (scr_w - 40);
 				} else {
 					dir = SENS_DROITE;
 					x = offset + 40;
@@ -1072,7 +1072,7 @@ void EnnemiMario::onPluiedefeu()
 		if (dir == SENS_DROITE) {
 			marche(speed);
 			pic = pbk_ennemis[anime(anim_mario_marche_droite, 4, 16 - (3 * speed))];
-			if (x > offset + 600) {
+			if (x > offset + (scr_w - 40)) {
 				fireball = true;
 				attack_phase = 1;
 				speed = 1;
@@ -1109,7 +1109,7 @@ void EnnemiMario::onPluiedefeu()
 				if ((dir == SENS_DROITE) && (x + (attack_etape + 1) * 100 + 20 > 620)) {
 					attack_phase ++;
 					attack_ss_etape = 0;
-					attack_etape = 1 + (offset + 640 - x) / 100;
+					attack_etape = 1 + (offset + (scr_w) - x) / 100;
 				} else if ((dir == SENS_GAUCHE) && (x - (attack_etape + 1) * 100 - 20 < 20)) {
 					attack_phase ++;
 					attack_ss_etape = 0;

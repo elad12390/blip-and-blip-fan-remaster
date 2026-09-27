@@ -19,7 +19,7 @@ void TirDebouchechiote::update()
 	x += dx;
 	y += dy;
 
-	if (x < offset - 100 || x > offset + 700 || y > 520 || y < -50)
+	if (x < offset - 100 || x > offset + (scr_w + 60) || y > 520 || y < -50)
 		a_detruire = true;
 
 	colFromPic();

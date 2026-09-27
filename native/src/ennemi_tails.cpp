@@ -64,7 +64,7 @@ void EnnemiTails::onAvance()
 	if (x - speed < xmin || mur_opaque(x - speed, y)) {
 		dir = SENS_DROITE;
 		speed = 1;
-	} else if (x + speed > offset + 640 || mur_opaque(x + speed, y)) {
+	} else if (x + speed > offset + (scr_w) || mur_opaque(x + speed, y)) {
 		dir = SENS_GAUCHE;
 		speed = 1;
 	}
@@ -199,7 +199,7 @@ void EnnemiTails::onVolle()
 		ss_etape = 0;
 		onAvance();
 		return;
-	} else if (attack && (x + speed > offset + 640 || mur_opaque(x + speed, y))) {
+	} else if (attack && (x + speed > offset + (scr_w) || mur_opaque(x + speed, y))) {
 		dir = SENS_GAUCHE;
 		speed = 1;
 		etat = ETAT_AVANCE;

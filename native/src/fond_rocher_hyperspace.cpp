@@ -72,7 +72,7 @@ void FondRocherHyperspace::update() {
             break;
     }
 
-    if (x > offset + 700) {
+    if (x > offset + (scr_w + 60)) {
         x = offset - 80;
         y_base = rand() % 380;
         y = rand() % 380;

@@ -551,7 +551,7 @@ void Couille::update()
 
 		// Cherche un endroit où atterir
 		//
-		x = offset + 320;
+		x = offset + (scr_w / 2);
 		int i = 0;
 
 		while (i < NB_MAX_PLAT && y_plat[i][x] == 0xFFFF)
@@ -642,7 +642,7 @@ void Couille::update()
 	if (etat == ETAT_NORMAL || etat == ETAT_AVANCE) {
 		int nplat = plat2(x, y);
 
-		if (nplat >= 6 && x > 10 && x > offset + 30 && x < offset + 610) {
+		if (nplat >= 6 && x > 10 && x > offset + 30 && x < offset + (scr_w - 30)) {
 			int ytmp1 = y_plat[nplat][x + 10] - y;
 			int ytmp2 = y_plat[nplat][x - 10] - y;
 
@@ -807,11 +807,11 @@ void Couille::onAvance()
 	int destx = x + dx_glisse;
 
 
-	if ((dx_glisse > 0 && !mur_opaque(destx, y) && destx < offset + 620)
+	if ((dx_glisse > 0 && !mur_opaque(destx, y) && destx < offset + (scr_w - 20))
 	        || (dx_glisse < 0 && !mur_opaque(destx, y) && destx > offset + 20))
 		marche(dx_glisse);
 	else {
-		if (ctrl->droite() && (!mur_opaque(x + 2, y) && x + 2 < offset + 620)) {
+		if (ctrl->droite() && (!mur_opaque(x + 2, y) && x + 2 < offset + (scr_w - 20))) {
 			// Avance droite
 			//
 			marche(2);
@@ -918,7 +918,7 @@ void Couille::onSaute()
 
 	int xx = x + dx_saut;
 
-	if (!mur_opaque(xx, y) && xx > offset + 20 && xx < offset + 620)
+	if (!mur_opaque(xx, y) && xx > offset + 20 && xx < offset + (scr_w - 20))
 		x = xx;
 
 
@@ -1385,7 +1385,7 @@ void Couille::onSaleto()
 	int xx = x + dx_saut;
 
 
-	if (!mur_opaque(xx, y) && xx > offset + 20 && xx < offset + 620)
+	if (!mur_opaque(xx, y) && xx > offset + 20 && xx < offset + (scr_w - 20))
 		x = xx;
 
 

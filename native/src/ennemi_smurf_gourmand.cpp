@@ -67,7 +67,7 @@ void EnnemiSmurfGourmand::onNormal()
 	//
 	wait_for_shoot += 1;
 
-	if (wait_for_shoot > shoot_delay && x > offset && x < offset + 640 && tete_turc != NULL) {
+	if (wait_for_shoot > shoot_delay && x > offset && x < offset + (scr_w) && tete_turc != NULL) {
 		sbk_niveau.play(14 + rand() % 2);
 		etat = ETAT_TIRE;
 		wait_for_shoot = 0;

@@ -73,6 +73,7 @@ SDL::Surface *	videoA			= NULL;		// cache video
 //-----------------------------------------------------------------------------
 
 int			offset;				// offset courant du scroll
+int			scr_w = kAuthoredScreenWidth;
 int			scr_offset;			// = offset % 640
 
 int			scroll_speed;

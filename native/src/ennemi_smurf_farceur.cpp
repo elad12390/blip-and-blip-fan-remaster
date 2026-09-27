@@ -146,7 +146,7 @@ void EnnemiSmurfFarceur::onAvance()
 	// Si obstacle, on fait demi-tour
 	if (x - SMURF_FARCEUR_SPEED < xmin || mur_opaque(x - SMURF_FARCEUR_SPEED, y))
 		dir = SENS_DROITE;
-	else if (x + SMURF_FARCEUR_SPEED > offset + 640 || mur_opaque(x + SMURF_FARCEUR_SPEED, y))
+	else if (x + SMURF_FARCEUR_SPEED > offset + (scr_w) || mur_opaque(x + SMURF_FARCEUR_SPEED, y))
 		dir = SENS_GAUCHE;
 
 

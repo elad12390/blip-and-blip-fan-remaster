@@ -108,7 +108,7 @@ void EnnemiBisouNuage::onNormal()
 	static const int anim_gauche [] = { 229, 230, 231, 230 };
 	static const int anim_droite [] = { 226, 227, 228, 227 };
 
-	if (x > (offset + 320)) {
+	if (x > (offset + (scr_w / 2))) {
 		dir = SENS_GAUCHE;
 		pic = pbk_ennemis[anime(anim_gauche, 4, 10)];
 	} else {
@@ -116,7 +116,7 @@ void EnnemiBisouNuage::onNormal()
 		pic = pbk_ennemis[anime(anim_droite, 4, 10)];
 	}
 
-	if (etape_shoot >= wait_shoot && x <= offset + 640) {
+	if (etape_shoot >= wait_shoot && x <= offset + (scr_w)) {
 		TirNuage * s = new TirNuage();
 
 		s->x = x;

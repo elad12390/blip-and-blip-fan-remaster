@@ -17,7 +17,9 @@
 *
 ******************************************************************/
 
-#define WANTED_VBUFFER_WIDE	840
+// The decal ring must stay wider than the widest play window (1600) plus the
+// columns prefilled ahead of the right edge.
+#define WANTED_VBUFFER_WIDE	2400
 
 extern int	vbuffer_wide;
 extern int	next_x;

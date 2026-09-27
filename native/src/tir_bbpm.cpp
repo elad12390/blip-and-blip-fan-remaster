@@ -33,7 +33,7 @@ void TirBBPM::update()
 	x += dxReferentiel;
 
 
-	if (mur_opaque(x, y) || x < offset - 20 || x > offset + 690 || y < -20 || y > 500) {
+	if (mur_opaque(x, y) || x < offset - 20 || x > offset + (scr_w + 50) || y < -20 || y > 500) {
 		pic = NULL;
 		noCol();
 		a_detruire = true;

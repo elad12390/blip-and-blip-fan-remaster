@@ -72,7 +72,7 @@ void EnnemiSmurfCostaud::onAvance()
 	//
 	if (x - SPEED < xmin || mur_opaque(x - SPEED, y))
 		dir = SENS_DROITE;
-	else if (x + SPEED > offset + 640 || mur_opaque(x + SPEED, y))
+	else if (x + SPEED > offset + (scr_w) || mur_opaque(x + SPEED, y))
 		dir = SENS_GAUCHE;
 
 	if (dir == SENS_DROITE) {
@@ -206,7 +206,7 @@ void EnnemiSmurfCostaud::onTireDragonPunch()
 				dy = dypunch;
 		}
 	} else if (dy < 0) {
-		if (dir == SENS_DROITE && x < offset + 640 && !mur_opaque(x + 1, y))
+		if (dir == SENS_DROITE && x < offset + (scr_w) && !mur_opaque(x + 1, y))
 			x += 1;
 		else if (dir == SENS_GAUCHE && x > xmin && !mur_opaque(x - 1, y))
 			x -= 1;
@@ -252,7 +252,7 @@ void EnnemiSmurfCostaud::onTireHurricanKick()
 
 	int x2 = x + dx;
 
-	if (!mur_opaque(x2, y) && x2 > xmin && x2 < offset + 740)
+	if (!mur_opaque(x2, y) && x2 > xmin && x2 < offset + (scr_w + 100))
 		x = x2;
 
 	if (dy > 0 && plat(x, y) != 0) {
@@ -287,7 +287,7 @@ void EnnemiSmurfCostaud::onTire()
 	else
 		dir = SENS_GAUCHE;
 
-	if (ddy > -50 && ddy < 50 && x > offset && x < offset + 640) {
+	if (ddy > -50 && ddy < 50 && x > offset && x < offset + (scr_w)) {
 		etat = ETAT_TIRE_HADOKEN;
 		sbk_niveau.play(19);
 		onTireHadoken();

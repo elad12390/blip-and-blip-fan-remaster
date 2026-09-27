@@ -52,7 +52,7 @@ void EnnemiSmurfette::onAvance()
 	//
 	if (x - SPEED < xmin || mur_opaque(x - SPEED, y) || (plat(x - SPEED, y) == 0 && plat(x - SPEED, y + 5) == 0))
 		dir = SENS_DROITE;
-	else if (x + SPEED > offset + 640 || mur_opaque(x + SPEED, y)  || (plat(x + SPEED, y) == 0 && plat(x + SPEED, y + 5) == 0))
+	else if (x + SPEED > offset + (scr_w) || mur_opaque(x + SPEED, y)  || (plat(x + SPEED, y) == 0 && plat(x + SPEED, y + 5) == 0))
 		dir = SENS_GAUCHE;
 
 	if (dir == SENS_DROITE) {

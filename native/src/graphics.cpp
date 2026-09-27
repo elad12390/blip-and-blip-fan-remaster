@@ -118,9 +118,20 @@ bool Graphics::SetColorKey(SDL::Surface* surf, Pixel rgb) {
     return true;
 }
 
+// Present, then suspend until the display's next frame so simulation steps and
+// presentation stay in step with vsync instead of a free-running timer.
+EM_ASYNC_JS(void, bb_wait_animation_frame, (), {
+    await new Promise(resolve => {
+        let done = false;
+        const finish = () => { if (!done) { done = true; resolve(); } };
+        requestAnimationFrame(finish);
+        setTimeout(finish, 50);
+    });
+});
+
 void Graphics::Flip() {
     bb_present_frame();
-    emscripten_sleep(1);
+    bb_wait_animation_frame();
 }
 void Graphics::FlipV() { Flip(); }
 void Graphics::Clear(int r,int g,int b) {

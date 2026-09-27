@@ -14,12 +14,16 @@ void bb_level_begin(Couille* p1, Couille* p2);
 void bb_death();
 void bb_complete();
 extern "C" const char* bb_state_json();
+// Sends the current state to the browser immediately (dialogue changes).
+void bb_push_state();
+// File name of the level's dialogue portrait bank, e.g. "snufrpg.gfx".
+extern char bb_rpg_bank[32];
 
-// Rendering and authored encounter progression are deliberately independent.
-// Original event triggers / boss arenas use offset; the camera may follow
-// either direction and expose as much world as the browser viewport requests.
+// The gameplay camera is the play window: [offset, offset + scr_w). The browser
+// requests the window width; see scr_w in globals.h.
 extern int bb_view_width, bb_view_height, bb_camera_x;
 extern bool bb_gameplay_frame;
 void bb_prepare_frame(bool gameplay);
 void bb_present_frame();
+void bb_update_play_width();
 extern "C" void bb_set_viewport(int width, int height);
