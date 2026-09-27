@@ -4,6 +4,8 @@
 
 ## [▶ Play in your browser](https://blip-and-blop.vercel.app)
 
+[![Redesigned Blip & Blop title menu with character selection, Classic and Roguelite modes, co-op and difficulty options](docs/images/title-menu.jpg)](https://blip-and-blop.vercel.app)
+
 Blip & Blop is a chaotic, cartoon run-and-gun platformer: run, jump, aim and shoot through waves of enemies, collect weapons, unleash cow bombs, and take on bosses. Play solo or team up locally with a second player. Expect the original game's over-the-top violence and parody characters.
 
 This is a fan-made tribute, not an official release or a project affiliated with LOADED Studio. The original creators deserve the credit for the game, characters, artwork, music and campaign; this project brings that foundation to modern browsers and builds improvements around it.
@@ -25,6 +27,35 @@ This fan remaster was also an experiment in building and improving a real game w
 - **Debugging and practice:** an in-game console with cheats, entity inspection, stage warps, fast-forward and experimental autoplay.
 
 Progress and records are saved locally in your browser. There is no online leaderboard or account requirement.
+
+## Screenshots — the game and our improvements
+
+Real browser captures from the fan remaster. Original game artwork is credited to its creators; the new menus, HUD and tools shown here are part of this adaptation. Click a screenshot to see it larger.
+
+### The original campaign, with a new HUD and GPU rendering
+
+![Blip firing a shotgun in the Care Bears stage, with the redesigned health, score, weapon and cow-bomb HUD](docs/images/gameplay.jpg)
+
+The original campaign and sprites, presented in a responsive play area with enhanced lighting and a canvas HUD.
+
+| Remappable controls | Speedrun tools |
+| --- | --- |
+| [![Controls menu with keyboard bindings and tabs for both co-op players and gamepad](docs/images/control-remapping.jpg)](docs/images/control-remapping.jpg) | [![Speedrun tab in Hall of Steel with timer enabled and ranked-run rules](docs/images/speedrun.jpg)](docs/images/speedrun.jpg) |
+| Dedicated keyboard, co-op and gamepad mappings. | Toggle the timer and track local personal bests, stage splits and gold segments. |
+
+### Portrait touch controls
+
+<p align="center">
+  <a href="docs/images/mobile-controls.jpg"><img src="docs/images/mobile-controls.jpg" width="320" alt="Portrait gameplay with a separate touch-control dock containing a joystick, jump, fire and cow-bomb buttons"></a>
+</p>
+
+On narrow screens, the camera follows the player and a dedicated control dock keeps the main buttons below the action.
+
+### Built-in debugging and practice tools
+
+![In-game debug console showing weapon commands, player state and world inspection](docs/images/debug-console.jpg)
+
+Inspect game state, try weapons, warp between stages and speed up testing. This capture is a cheat-enabled QA session; these tools make speedruns unranked.
 
 **Implementation boundary:** the gameplay engine is a modified port of the published C++ source compiled to WebAssembly. The browser interface, input adapter, save/progression layer and lighting integration are new. This is **not a complete from-scratch or clean-room rewrite** of the game engine. The 12 original level files, enemies, weapons, scripts, cinematics and ending remain source-derived.
 
