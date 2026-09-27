@@ -1,3 +1,4 @@
+const fmt = ms => { const neg = ms < 0, t = Math.abs(ms); return `${neg ? '-' : ''}${Math.floor(t / 60000)}:${String(Math.floor(t / 1000) % 60).padStart(2, '0')}.${Math.floor(t / 100) % 10}`; };
 // Debug console commands and cheat codes. `api` is supplied by the game model;
 // every command returns lines to print (strings) or throws an Error with a
 // message for the user.
@@ -133,6 +134,13 @@ export const COMMANDS = {
   unlock: { usage: 'unlock', about: 'Release a locked fight.', run: api => { needGame(api); return [api.unlock() ? 'Fight unlocked.' : 'Nothing was locked.']; } },
   teleport: { usage: 'teleport <x>', about: 'Move player 1 (the camera follows forward).', run: (api, [x]) => { needGame(api); return [`p1.x = ${api.entity(-1, 0, int(x, 'x', 0, api.world().levelSize - 1))}`]; } },
   overlay: { usage: 'overlay', about: 'Toggle entity markers with indexes and health.', run: api => [`Entity overlay ${api.toggleOverlay() ? 'ON' : 'OFF'}.`] },
+  splits: { usage: 'splits', about: 'Speedrun splits for this run and the personal best.', run: api => {
+    const run = api.speedrun?.();
+    if (!run) return ['No run in progress.'];
+    const lines = [`${run.invalid ? `UNRANKED (${run.invalid})` : 'ranked'}  time ${fmt(run.time)}  pb ${run.pb ? fmt(run.pb.total) : '—'}`];
+    for (const sp of run.splits) lines.push(`  ${String(sp.part).padStart(2)} ${fmt(sp.time)}  segment ${fmt(sp.segment)}${sp.delta === null ? '' : `  ${sp.delta <= 0 ? '' : '+'}${fmt(sp.delta)}`}${sp.gold ? '  GOLD' : ''}`);
+    return lines;
+  } },
   shards: { usage: 'shards <n>', about: 'Set Roguelite shards.', run: (api, [v]) => { api.setShards(int(v, 'Shards', 0, 999999)); return ['Shards updated.']; } },
   fps: { usage: 'fps', about: 'Toggle the frame-rate overlay.', run: api => [`FPS overlay ${api.toggleFps() ? 'ON' : 'OFF'}.`] },
   log: { usage: 'log', about: 'Show recent engine messages.', run: api => { const lines = api.engineLog(); return lines.length ? lines : ['No engine messages yet.']; } },

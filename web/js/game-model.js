@@ -7,6 +7,7 @@ import { bind, bindCoop, DEFAULT_BINDINGS, clone } from './bindings.js';
 import { ConsoleScreen } from './ui/screens/console.js';
 import { createAutopilot, autopilotStep } from './autopilot.js';
 import { execute } from './debug-commands.js';
+import { SpeedrunTimer, SPLIT_PARTS, categoryKey } from './speedrun.js';
 
 const PART_NAMES = ['Briefing', 'Smurf Village I', 'Briefing', 'Smurf Village II', 'Briefing', 'Duck Hunt', 'Briefing', 'Care Bears I', 'Briefing', 'Care Bears II', 'Care Bears III', 'Briefing', 'Snorks I', 'Snorks II', 'Briefing', 'Lemmings', 'Briefing', 'Video Game World', 'Briefing', 'Mario and Luigi', 'Briefing', 'The Final Battle'];
 const newRunId = () => globalThis.crypto?.randomUUID?.() ?? `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
@@ -70,7 +71,39 @@ export class GameModel {
 
   // Scripting entry point for tests and the browser devtools console:
   // blipBlop.debug.run('test 16') returns the printed lines.
+  // ---------- speedrun ----------
+  get speedrunCategory() { return categoryKey({ mode: this.mode, difficulty: this.save.difficulty, players: this.players }); }
+
+  startSpeedrun(resumed) {
+    const category = this.speedrunCategory;
+    this.speedrun = new SpeedrunTimer({ category, pb: this.save.speedrun.pbs[category] ?? null, golds: this.save.speedrun.golds[category] ?? {}, now: performance.now() });
+    if (resumed) this.speedrun.invalidate('continued from a checkpoint');
+    this.lastSplit = null;
+  }
+
+  invalidateSpeedrun(reason) { this.speedrun?.invalidate(reason); }
+
+  // Called every interface frame: the clock only runs during live play (not
+  // paused, not in menus, not after the run ended, not while downloading).
+  tickSpeedrun(now) {
+    const run = this.speedrun;
+    if (!run || run.finished) return;
+    if (this.playing && !this.paused && !this.ended && this.engine.ready && !document.hidden) run.resume(now); else run.pause(now);
+    if (this.state.cheated) run.invalidate('cheats were used');
+  }
+
+  splitSpeedrun(part) {
+    const entry = this.speedrun?.split(part, performance.now());
+    if (entry) this.lastSplit = { ...entry, shownAt: performance.now() };
+  }
+
+  saveSpeedrun() {
+    if (!this.speedrun || this.speedrun.invalid) return;
+    this.save.speedrun = this.speedrun.record(this.save.speedrun, new Date().toISOString().slice(0, 10));
+  }
+
   runDebug(line) {
+    this.invalidateSpeedrun('the debug console was used');
     const lines = [];
     const screen = { clear: () => {} };
     for (const out of execute(this.debugApi(screen), line)) lines.push(out);
@@ -79,6 +112,7 @@ export class GameModel {
 
   debugApi(screen) {
     const m = this.engine.module;
+    this.invalidateSpeedrun('the debug console was used');
     return {
       speed: percent => m._bb_debug_speed(percent),
       autoplay: on => { if (on === undefined) return !!this.autopilot; this.setAutoplay(on); return on; },
@@ -87,6 +121,7 @@ export class GameModel {
       flag: (i, v) => m._bb_debug_flag(i, v),
       unlock: () => m._bb_debug_unlock(),
       toggleOverlay: () => (this.showOverlay = !this.showOverlay),
+      speedrun: () => this.speedrun && { invalid: this.speedrun.invalid, time: this.speedrun.time(performance.now()), pb: this.speedrun.pb, splits: this.speedrun.splits },
       inGame: () => !!this.state.inGame && !!m,
       state: () => this.state,
       world: () => this.debugWorld(),
@@ -102,6 +137,7 @@ export class GameModel {
 
   warp(part) {
     if (!this.engine.ready) return;
+    this.startSpeedrun(true); this.invalidateSpeedrun('warped to a stage');
     this.playing = true; this.paused = false; this.ended = false; this.resumed = true; this.runId = newRunId();
     this.ui.replace(this.hud);
     this.input.coop = this.players === 2;
@@ -190,6 +226,7 @@ export class GameModel {
       if (attempt !== this.startAttempt || !this.playing) return;
       this.ui.remove(this.loading);
       this.input.coop = this.players === 2;
+      this.startSpeedrun(!!checkpoint);
       this.engine.start({ mode: this.mode, player: this.hero, part: checkpoint?.part ?? 0, upgrades: this.save.upgrades, players: this.players, difficulty: this.save.difficulty });
       this.engine.volume(this.save.settings.volume);
       this.engine.pause(false);
@@ -238,6 +275,8 @@ export class GameModel {
     this.startAttempt++;
     this.engine.stop(); this.input.enable(false); this.touch.releaseAll();
     this.playing = false; this.paused = false; this.ended = false;
+    if (this.speedrun && !this.speedrun.finished) { this.saveSpeedrun(); this.persist(); }
+    this.speedrun = null;
     this.gameCanvas.style.cssText = '';
     this.showTitle();
   }
@@ -248,6 +287,8 @@ export class GameModel {
   onState(state) {
     const previousPart = this.state.part, wasGameplay = this.state.inGame && this.state.frameIsGameplay;
     this.state = state;
+    // A stage is cleared when the campaign moves past it.
+    if (SPLIT_PARTS.includes(previousPart) && state.part !== previousPart && state.part > previousPart) this.splitSpeedrun(previousPart);
     const gameplay = state.inGame && state.frameIsGameplay;
     if (gameplay && (!wasGameplay || state.part !== previousPart) && PART_NAMES[state.part] && PART_NAMES[state.part] !== 'Briefing' && state.part !== this.bannerPart) {
       this.bannerPart = state.part; this.hud.showBanner(PART_NAMES[state.part]);
@@ -262,6 +303,7 @@ export class GameModel {
   }
 
   onDeath(state) {
+    this.speedrun?.pause(performance.now()); this.saveSpeedrun();
     if (state.cheated) { this.end(); this.ui.push(new DefeatScreen(this, { reward: 'Cheats were used, so this run earns no score or shards.', score: state.score ?? 0 })); return; }
     recordScore(this.save, { ...state, id: this.runId, mode: this.mode, player: this.hero, resumed: this.resumed });
     const gained = settleRun(this.save, { ...state, id: this.runId, mode: this.mode });
@@ -272,6 +314,9 @@ export class GameModel {
   }
 
   onComplete(state) {
+    const result = this.speedrun?.finish(performance.now());
+    if (result) { this.saveSpeedrun(); this.persist(); }
+    this.speedrunResult = result ? { ...result, invalid: this.speedrun.invalid } : null;
     if (state.cheated) { this.end(); this.ui.push(new CompleteScreen(this, { message: 'You finished the campaign with cheats on. No score or shards this time.' })); return; }
     recordScore(this.save, { ...state, id: this.runId, mode: this.mode, player: this.hero, completed: true, resumed: this.resumed });
     const gained = settleRun(this.save, { ...state, id: this.runId, mode: this.mode, completed: true });

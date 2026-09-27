@@ -2,6 +2,7 @@ import { C } from '../paint.js';
 import { SPRITES } from '../art.js';
 import { computeLayout } from '../layout.js';
 import { iconButton } from '../components.js';
+import { formatTime, SPLIT_NAMES } from '../../speedrun.js';
 
 // Gameplay HUD and touch controls. Not modal: gameplay input passes through.
 export class HudScreen {
@@ -27,6 +28,7 @@ export class HudScreen {
 
   draw(ui, dt, now) {
     const m = this.model, state = m.state ?? {}, layout = this.layoutFor(ui);
+    m.tickSpeedrun(now);
     const dialogue = state.inGame && state.dialogue ? state.dialogue : null;
     // Controls belong to the hero only while nobody is talking.
     const gameplay = !!state.inGame && state.frameIsGameplay !== false && !dialogue;
@@ -41,6 +43,7 @@ export class HudScreen {
     else if (!dialogue && m.playing) this.continuePrompt(ui, layout, now);
     this.drawBanner(ui, now);
     if (m.showFps) this.fps(ui, layout, now);
+    if (m.save.settings.speedrunTimer && m.speedrun) this.speedrunTimer(ui, layout, now);
     if (m.showOverlay && state.inGame) this.overlay(ui, layout, state);
     this.syncTouchZones(layout, gameplay);
   }
@@ -137,6 +140,38 @@ export class HudScreen {
     const [lx] = toScreen(world.offset, 0), [rx] = toScreen(world.offset + world.scrW, 0);
     g.strokeStyle = '#fff08a'; g.setLineDash([6, 6]); g.beginPath(); g.moveTo(lx, layout.game.y); g.lineTo(lx, layout.game.y + layout.game.h); g.moveTo(rx, layout.game.y); g.lineTo(rx, layout.game.y + layout.game.h); g.stroke();
     g.restore();
+  }
+
+  // Speedrun clock under the top-right controls, with the last split's delta
+  // against the personal best (green ahead, red behind, gold = best segment).
+  speedrunTimer(ui, layout, now) {
+    const m = this.model, run = m.speedrun, p = ui.paint, g = ui.ctx;
+    const s = layout.hud.scale, right = ui.width - (layout.inset.right || 0) - 14 * s;
+    const chipBottom = layout.weapon && layout.weapon.y < 150 ? layout.weapon.y + 46 * layout.weapon.scale : 0;
+    const top = Math.max(layout.pause.y + layout.pause.r, chipBottom) + 10 * s;
+    const w = 196 * s, h = 46 * s, x = right - w;
+    p.panel(x, top, w, h, { r: 12 * s, grad: ['#1c1729ee', '#0e0b17ee'], ink: 3, shadow: 3, gloss: false });
+    g.save();
+    g.font = `800 ${24 * s}px ui-monospace, 'SF Mono', Menlo, monospace`; g.textAlign = 'right'; g.textBaseline = 'middle';
+    const time = run.time(now);
+    g.fillStyle = run.finished ? C.goldLight : run.invalid ? C.muted : '#9dff72';
+    g.fillText(formatTime(time), right - 12 * s, top + h / 2 + 1);
+    g.restore();
+    let y = top + h + 6 * s;
+    const split = m.lastSplit;
+    if (split && now - split.shownAt < 5000) {
+      const color = split.gold ? C.gold : split.delta === null ? C.lilac : split.delta <= 0 ? '#9dff72' : '#ff7b62';
+      const label = split.delta === null ? formatTime(split.time) : formatTime(split.delta, { sign: true });
+      p.panel(x, y, w, 30 * s, { r: 10 * s, grad: ['#1c1729ee', '#0e0b17ee'], ink: 2.5, shadow: 2, gloss: false });
+      g.save(); g.textBaseline = 'middle';
+      g.font = `800 ${10 * s}px ${'ui-rounded, system-ui, sans-serif'}`; g.textAlign = 'left'; g.fillStyle = C.lilac;
+      g.fillText((SPLIT_NAMES[split.part] ?? '').toUpperCase().slice(0, 13), x + 10 * s, y + 15 * s);
+      g.font = `800 ${15 * s}px ui-monospace, Menlo, monospace`; g.textAlign = 'right'; g.fillStyle = color;
+      g.fillText(label, right - 10 * s, y + 15 * s);
+      g.restore();
+      y += 36 * s;
+    }
+    if (run.invalid) p.body('UNRANKED', right - 4 * s, y + 6 * s, { size: 10 * s, align: 'right', color: C.muted });
   }
 
   fps(ui, layout, now) {

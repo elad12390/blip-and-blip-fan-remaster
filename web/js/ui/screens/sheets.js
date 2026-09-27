@@ -1,6 +1,7 @@
 import { C } from '../paint.js';
 import { sheet, segmented, settingRow, toggle, slider } from '../components.js';
 import { ACTIONS, PAD_ACTIONS, LABELS, keyName, buttonName } from '../../bindings.js';
+import { formatTime, categoryName, SPLIT_PARTS } from '../../speedrun.js';
 
 const close = (ui, screen) => () => { ui.remove(screen); screen.onClose?.(); };
 
@@ -43,7 +44,8 @@ export class ScoresScreen {
   draw(ui) {
     const m = this.model, p = ui.paint;
     const box = sheet(ui, { title: 'HALL OF STEEL', width: 480, height: 470, onClose: () => ui.remove(this) });
-    segmented(ui, 'scores-tab', box.x, box.y, box.w, 48, [{ value: 'original', label: 'CLASSIC' }, { value: 'roguelite', label: 'ROGUELITE' }], this.tab, v => { this.tab = v; });
+    segmented(ui, 'scores-tab', box.x, box.y, box.w, 48, [{ value: 'original', label: 'CLASSIC' }, { value: 'roguelite', label: 'ROGUELITE' }, { value: 'speedrun', label: 'SPEEDRUN' }], this.tab, v => { this.tab = v; });
+    if (this.tab === 'speedrun') { this.speedrunTab(ui, box); return; }
     const rows = m.highScores(this.tab);
     const rowH = Math.min(38, (box.h - 90) / 8);
     if (!rows.length) p.body('Your first score goes here.', box.x + box.w / 2, box.y + 110, { size: 15, color: '#6a5a44', align: 'center', shadow: false });
@@ -56,6 +58,23 @@ export class ScoresScreen {
     p.body('Runs resumed from a checkpoint are unranked.', box.x + box.w / 2, box.y + box.h - 8, { size: 11, color: '#6a5a44', align: 'center', shadow: false });
   }
 }
+
+ScoresScreen.prototype.speedrunTab = function (ui, box) {
+  const m = this.model, p = ui.paint, g = ui.ctx, s = m.save.settings;
+  settingRow(ui, box.x, box.y + 62, box.w, 'TIMER', 'In-game time with splits', (cx, cy, cw, ch) => toggle(ui, 'speedrun-timer', cx, cy, cw, ch, s.speedrunTimer, v => m.setSetting('speedrunTimer', v)));
+  const entries = Object.entries(m.save.speedrun.pbs).sort(([, a], [, b]) => a.total - b.total);
+  let y = box.y + 134;
+  if (!entries.length) p.body('Finish the campaign to set a personal best. Pauses do not count; cheats, the console, warps and checkpoints make a run unranked.', box.x, y + 10, { size: 12, color: '#6a5a44', shadow: false, maxWidth: box.w });
+  for (const [key, pb] of entries.slice(0, 5)) {
+    const golds = m.save.speedrun.golds[key] ?? {}, parts = SPLIT_PARTS.map(part => golds[part]);
+    const sob = parts.every(Number.isFinite) ? parts.reduce((a, b) => a + b, 0) : null;
+    p.body(categoryName(key), box.x, y + 10, { size: 13, color: C.ink, shadow: false });
+    p.text(formatTime(pb.total), box.x + box.w - 4, y + 10, 18, { align: 'right', color: C.purpleDark, outline: false });
+    p.body(`${pb.date || ''}${sob ? `   ·   sum of best ${formatTime(sob)}` : ''}`, box.x, y + 30, { size: 11, color: '#6a5a44', shadow: false });
+    g.fillStyle = '#14101822'; g.fillRect(box.x, y + 44, box.w, 2);
+    y += 52;
+  }
+};
 
 export class SettingsScreen {
   constructor(model) { this.model = model; this.modal = true; this.tab = model.touchVisible() ? 'touch' : model.gamepad ? 'controls' : 'display'; this.table = model.gamepad ? 'pad' : 'solo'; }

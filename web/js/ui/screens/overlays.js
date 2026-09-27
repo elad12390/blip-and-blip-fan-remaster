@@ -1,6 +1,7 @@
 import { C } from '../paint.js';
 import { sheet, slider } from '../components.js';
 import { drawBackdrop } from './menu.js';
+import { formatTime } from '../../speedrun.js';
 
 // Stack of full-width buttons inside a sheet. items: [id, label, top, bottom, onPress, primary]
 function buttonColumn(ui, box, items, { height = 52, gap = 14 } = {}) {
@@ -56,8 +57,14 @@ export class CompleteScreen {
   draw(ui, dt, now) {
     drawBackdrop(ui, now);
     const m = this.model, p = ui.paint;
-    const box = sheet(ui, { title: 'BALLS. OF. STEEL.', width: 480, height: 300, tilt: -1.5 });
+    const run = m.speedrunResult;
+    const box = sheet(ui, { title: 'BALLS. OF. STEEL.', width: 480, height: run ? 380 : 300, tilt: -1.5 });
     p.body(this.message, box.x + box.w / 2, box.y + 30, { size: 16, color: C.ink, align: 'center', maxWidth: box.w, shadow: false });
+    if (run) {
+      p.text(formatTime(run.total), box.x + box.w / 2, box.y + 112, 40, { align: 'center', color: run.invalid ? C.muted : C.gold });
+      const note = run.invalid ? `Unranked: ${run.invalid}.` : run.isPb ? (run.delta === null ? 'First recorded time!' : `NEW PERSONAL BEST  ${formatTime(run.delta, { sign: true })}`) : `Personal best ${formatTime(run.total - run.delta)}  (${formatTime(run.delta, { sign: true })})`;
+      p.body(note, box.x + box.w / 2, box.y + 150, { size: 14, color: run.isPb && !run.invalid ? C.helmetDark : '#6a5a44', align: 'center', maxWidth: box.w, shadow: false });
+    }
     buttonColumn(ui, { ...box, y: box.y + box.h - 60 }, [['complete-title', 'BACK TO TITLE', C.goldLight, C.goldDark, () => m.quit(), true]]);
   }
 }

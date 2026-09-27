@@ -153,7 +153,7 @@ test('first-version saves gain usable touch defaults without enabling auto fire 
   const migrated = normalizeSave(oldSave);
   assert.deepEqual(migrated.settings, {
     graphics: 'original', volume: 0.3, touch: 'on', reducedMotion: false,
-    handedness: 'right', controlSize: 'comfortable', joystick: 'floating', autoFire: false,
+    handedness: 'right', controlSize: 'comfortable', joystick: 'floating', autoFire: false, speedrunTimer: false,
   });
   assert.equal(migrated.shards, 37);
   assert.equal(migrated.deaths, 4);
