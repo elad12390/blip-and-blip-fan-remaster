@@ -3,13 +3,32 @@ import { SPRITES } from '../art.js';
 import { segmented, iconButton, pill } from '../components.js';
 
 // Shared title backdrop: original forest art, darkened, with a slow sunburst.
-export function drawBackdrop(ui, now, { focusY = .4 } = {}) {
-  const p = ui.paint, g = ui.ctx, w = ui.width, h = ui.height;
+// Shared title backdrop: original forest art, darkened, with a slow sunburst.
+// The blurred, graded layer is rendered once per size: canvas blur filters are
+// very expensive per frame (Firefox runs them on the CPU).
+const backdropCache = { key: '', canvas: null };
+function backdropLayer(ui, focusY) {
+  const w = ui.width, h = ui.height, dpr = ui.dpr, key = `${w}x${h}@${dpr}|${focusY}`;
+  if (backdropCache.key === key) return backdropCache.canvas;
+  const canvas = backdropCache.canvas ?? document.createElement('canvas');
+  canvas.width = Math.max(1, Math.round(w * dpr)); canvas.height = Math.max(1, Math.round(h * dpr));
+  const g = canvas.getContext('2d');
+  g.setTransform(dpr, 0, 0, dpr, 0, 0);
   g.fillStyle = C.night; g.fillRect(0, 0, w, h);
-  g.save(); g.globalAlpha = .45; g.filter = 'blur(2px) saturate(1.2)'; p.cover(ui.art.backdrop, -8, -8, w + 16, h + 16); g.restore();
+  const image = ui.art.backdrop, sc = Math.max((w + 16) / image.width, (h + 16) / image.height);
+  g.save(); g.globalAlpha = .45; g.filter = 'blur(2px) saturate(1.2)';
+  g.drawImage(image, (w - image.width * sc) / 2, (h - image.height * sc) / 2, image.width * sc, image.height * sc);
+  g.restore();
   const rg = g.createRadialGradient(w / 2, h * focusY, 0, w / 2, h * focusY, Math.max(w, h) * .75);
   rg.addColorStop(0, '#3b1f6b55'); rg.addColorStop(1, '#07050cf0');
   g.fillStyle = rg; g.fillRect(0, 0, w, h);
+  backdropCache.key = key; backdropCache.canvas = canvas;
+  return canvas;
+}
+
+export function drawBackdrop(ui, now, { focusY = .4 } = {}) {
+  const p = ui.paint, w = ui.width, h = ui.height;
+  ui.ctx.drawImage(backdropLayer(ui, focusY), 0, 0, w, h);
   p.sunburst(w / 2, h * focusY, Math.max(w, h), C.gold, .05, now / 20000);
   p.halftone(0, h * .62, w, h * .38, '#6a4bb328', { step: 11, maxR: 3, fromTop: false });
 }
